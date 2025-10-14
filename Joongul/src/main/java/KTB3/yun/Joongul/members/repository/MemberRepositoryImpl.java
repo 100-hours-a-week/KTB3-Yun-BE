@@ -5,6 +5,7 @@ import KTB3.yun.Joongul.members.domain.MemberData;
 import KTB3.yun.Joongul.members.dto.MemberInfoUpdateRequestDto;
 import KTB3.yun.Joongul.members.dto.PasswordUpdateRequestDto;
 import KTB3.yun.Joongul.members.dto.SignupRequestDto;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Repository;
 
 import static KTB3.yun.Joongul.members.domain.MemberData.sequence;
@@ -12,9 +13,15 @@ import static KTB3.yun.Joongul.members.domain.MemberData.sequence;
 @Repository
 public class MemberRepositoryImpl implements MemberRepository {
 
+    private final BCryptPasswordEncoder passwordEncoder;
+
+    public MemberRepositoryImpl(BCryptPasswordEncoder passwordEncoder) {
+        this.passwordEncoder = passwordEncoder;
+    }
+
     @Override
     synchronized public void addMember(SignupRequestDto dto) {
-        MemberData.MEMBERS.put(sequence, new Member(sequence, dto.getEmail(), dto.getPassword(),
+        MemberData.MEMBERS.put(sequence, new Member(sequence, dto.getEmail(), passwordEncoder.encode(dto.getPassword()),
                 dto.getNickname(), dto.getProfileImage()));
         MemberData.EMAILS.put(dto.getEmail(), sequence);
         MemberData.NICKNAMES.put(dto.getNickname(), sequence);
@@ -42,7 +49,7 @@ public class MemberRepositoryImpl implements MemberRepository {
     @Override
     public void modifyPassword(PasswordUpdateRequestDto dto){
         Member member = MemberData.MEMBERS.get(dto.getMemberId());
-        member.setPassword(dto.getPassword());
+        member.setPassword(passwordEncoder.encode(dto.getPassword()));
     }
 
     @Override
@@ -50,6 +57,11 @@ public class MemberRepositoryImpl implements MemberRepository {
         MemberData.EMAILS.remove(MemberData.MEMBERS.get(memberId).getEmail());
         MemberData.NICKNAMES.remove(MemberData.MEMBERS.get(memberId).getNickname());
         MemberData.MEMBERS.remove(memberId);
+    }
+
+    @Override
+    public Long findIdByEmail(String email) {
+        return MemberData.EMAILS.get(email);
     }
 
     @Override
@@ -64,6 +76,11 @@ public class MemberRepositoryImpl implements MemberRepository {
 
     @Override
     public boolean alreadyUsingPassword(Long memberId, String password) {
-        return MemberData.MEMBERS.get(memberId).getPassword().equals(password);
+        return passwordEncoder.matches(password, MemberData.MEMBERS.get(memberId).getPassword());
+    }
+
+    @Override
+    public boolean isCorrectPassword(Long memberId, String password) {
+        return passwordEncoder.matches(password, MemberData.MEMBERS.get(memberId).getPassword());
     }
 }

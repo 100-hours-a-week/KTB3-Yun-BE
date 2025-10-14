@@ -12,6 +12,7 @@ import java.util.Map;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
+    //각 상황마다 원하는 예외를 던져주기 위해 작성했습니다.
     @ExceptionHandler(ApplicationException.class)
     public ResponseEntity<CustomErrorResponse> handleApplicationException(ApplicationException ex) {
         ErrorCode code = ex.getErrorCode();
@@ -19,6 +20,7 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(code.getStatus()).body(body);
     }
 
+    //@Valid의 유효성 검증에 실패하면 각 필드에 맞게 메시지를 함께 던져주기 위해 작성했습니다.
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<Map<String, String>> handleMethodArgumentNotValidException(MethodArgumentNotValidException ex) {
         Map<String, String> errors = new LinkedHashMap<>(); //dto와 동일한 순서로 보내주기 위해 LinkedHashMap을 사용

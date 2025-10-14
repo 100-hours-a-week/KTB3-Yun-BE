@@ -1,4 +1,4 @@
-package KTB3.yun.Joongul.common.api;
+package KTB3.yun.Joongul.common.dto;
 
 import lombok.Getter;
 

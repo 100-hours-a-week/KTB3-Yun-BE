@@ -11,7 +11,9 @@ public interface MemberRepository {
     void updateMemberInfo(MemberInfoUpdateRequestDto memberInfoUpdateRequestDto);
     void modifyPassword(PasswordUpdateRequestDto passwordUpdateRequestDto);
     void deleteMember(Long memberId);
+    Long findIdByEmail(String email);
     boolean existsByEmail(String email);
     boolean existsByNickname(String nickname);
     boolean alreadyUsingPassword(Long memberId, String password);
+    boolean isCorrectPassword(Long memberId, String password);
 }

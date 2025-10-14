@@ -1,11 +1,10 @@
 package KTB3.yun.Joongul.members.controller;
 
-import KTB3.yun.Joongul.common.api.ApiResponse;
-import KTB3.yun.Joongul.members.dto.MemberInfoResponseDto;
-import KTB3.yun.Joongul.members.dto.MemberInfoUpdateRequestDto;
-import KTB3.yun.Joongul.members.dto.PasswordUpdateRequestDto;
-import KTB3.yun.Joongul.members.dto.SignupRequestDto;
+import KTB3.yun.Joongul.common.dto.ApiResponse;
+import KTB3.yun.Joongul.members.dto.*;
 import KTB3.yun.Joongul.members.service.MemberService;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -46,7 +45,26 @@ public class MemberController {
     }
 
     @DeleteMapping
-    public void withdraw(@RequestParam(name = "memberId") Long memberId) {
+    public ResponseEntity<Void> withdraw(@RequestParam(name = "memberId") Long memberId) {
         memberService.withdraw(memberId);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/session")
+    public ResponseEntity<String> login(@RequestBody LoginRequestDto loginRequestDto,
+                                                  HttpServletRequest request) {
+        if (memberService.isCorrectMember(loginRequestDto)) {
+            HttpSession session = request.getSession();
+            session.setAttribute("USER_ID", loginRequestDto.getEmail());
+        }
+        return ResponseEntity.ok("login_success");
+    }
+
+    //로그아웃의 HTTP Method를 POST로 했는데, 그래서 그런지 RESTful한 이름이 떠오르지 않습니다..
+    @PostMapping("/logout")
+    public ResponseEntity<Void> logout(HttpServletRequest request) {
+        HttpSession session = request.getSession(false);
+        session.invalidate();
+        return ResponseEntity.noContent().build();
     }
 }

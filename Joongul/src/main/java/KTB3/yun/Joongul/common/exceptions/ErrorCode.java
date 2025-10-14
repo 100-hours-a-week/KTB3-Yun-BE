@@ -8,7 +8,8 @@ import org.springframework.http.HttpStatusCode;
 @Getter
 @AllArgsConstructor
 public enum ErrorCode {
-    NOT_SAME_PASSWORD(HttpStatus.BAD_REQUEST, "비밀번호가 다릅니다."),
+    NOT_SAME_WITH_CONFIRM(HttpStatus.BAD_REQUEST, "비밀번호가 다릅니다."),
+    INVALID_EMAIL_OR_PASSWORD(HttpStatus.UNAUTHORIZED, "이메일 또는 비밀번호가 다릅니다."),
     UNAUTHORIZED_REQUEST(HttpStatus.UNAUTHORIZED, "로그인이 필요합니다."),
     FORBIDDEN_REQUEST(HttpStatus.FORBIDDEN, "잘못된 접근입니다."),
     NOT_FOUND(HttpStatus.NOT_FOUND, "존재하지 않는 리소스입니다."),

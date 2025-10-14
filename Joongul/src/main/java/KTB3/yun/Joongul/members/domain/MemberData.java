@@ -1,5 +1,7 @@
 package KTB3.yun.Joongul.members.domain;
 
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -12,10 +14,12 @@ public class MemberData {
     public static Map<String, Long> EMAILS = new HashMap<>();
     public static Map<String, Long> NICKNAMES = new HashMap<>();
 
+    private static final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+
     static {
-        MEMBERS.put(1L, new Member(1L, "test1@test.com", "test1",
+        MEMBERS.put(1L, new Member(1L, "testone@test.com", passwordEncoder.encode("Test111!"),
                 "테스트1", "https://image.kr/test1"));
-        MEMBERS.put(2L, new Member(2L, "test2@test.com", "test2",
+        MEMBERS.put(2L, new Member(2L, "testtwo@test.com", passwordEncoder.encode("Test222!"),
                 "테스트2", "https://image.kr/test2"));
         EMAILS.put(MEMBERS.get(1L).getEmail(), 1L);
         EMAILS.put(MEMBERS.get(2L).getEmail(), 2L);
