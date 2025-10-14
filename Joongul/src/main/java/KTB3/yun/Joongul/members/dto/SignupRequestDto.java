@@ -12,7 +12,7 @@ public class SignupRequestDto {
 
     @NotBlank(message = "이메일을 입력해주세요.")
     @Pattern(
-            regexp = "^(?=.{1,64}@)[A-Za-z0-9_-]+(\\.[A-Za-z0-9_-]+)*@[^-][A-Za-z0-9-]+(\\.[A-Za-z0-9-]+)*(\\.[A-Za-z]{2,})$",
+            regexp = "^[a-z]{4,20}@[a-z]+(\\.[a-z]+)*(\\.[a-z]{2,})$",
             message = "올바른 이메일 주소 형식을 입력해주세요.(예: example@example.com)")
     private String email;
 
