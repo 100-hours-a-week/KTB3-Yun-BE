@@ -6,6 +6,7 @@ import KTB3.yun.Joongul.members.dto.MemberInfoUpdateRequestDto;
 import KTB3.yun.Joongul.members.dto.PasswordUpdateRequestDto;
 import KTB3.yun.Joongul.members.dto.SignupRequestDto;
 import KTB3.yun.Joongul.members.service.MemberService;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -21,7 +22,7 @@ public class MemberController {
     }
 
     @PostMapping
-    public ResponseEntity<String> signup(@RequestBody SignupRequestDto signupRequestDto) {
+    public ResponseEntity<String> signup(@RequestBody @Valid SignupRequestDto signupRequestDto) {
         memberService.signup(signupRequestDto);
         return ResponseEntity.status(HttpStatus.CREATED).body("register_success");
     }
@@ -33,13 +34,13 @@ public class MemberController {
     }
 
     @PutMapping
-    public ResponseEntity<String> updateMemberInfo(@RequestBody MemberInfoUpdateRequestDto memberInfoUpdateRequestDto) {
+    public ResponseEntity<String> updateMemberInfo(@RequestBody @Valid MemberInfoUpdateRequestDto memberInfoUpdateRequestDto) {
         memberService.updateMemberInfo(memberInfoUpdateRequestDto);
         return ResponseEntity.ok().body("user_info_change_success");
     }
 
     @PatchMapping
-    public ResponseEntity<String> modifyPassword(@RequestBody PasswordUpdateRequestDto passwordUpdateRequestDto) {
+    public ResponseEntity<String> modifyPassword(@RequestBody @Valid PasswordUpdateRequestDto passwordUpdateRequestDto) {
         memberService.modifyPassword(passwordUpdateRequestDto);
         return ResponseEntity.ok().body("password_change_success");
     }
