@@ -21,7 +21,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<Map<String, String>> handleMethodArgumentNotValidException(MethodArgumentNotValidException ex) {
-        Map<String, String> errors = new LinkedHashMap<>();
+        Map<String, String> errors = new LinkedHashMap<>(); //dto와 동일한 순서로 보내주기 위해 LinkedHashMap을 사용
         ex.getBindingResult().getFieldErrors().forEach((fieldError) -> {
             errors.put(fieldError.getField(), fieldError.getDefaultMessage());
         });
