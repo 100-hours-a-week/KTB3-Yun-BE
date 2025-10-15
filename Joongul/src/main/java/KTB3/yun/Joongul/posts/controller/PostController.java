@@ -27,24 +27,24 @@ public class PostController {
     }
 
     @GetMapping
-    public ResponseEntity<List<PostSimpleResponseDto>> getPostList(HttpServletRequest request) {
+    public ResponseEntity<ApiResponseDto<List<PostSimpleResponseDto>>> getPostList(HttpServletRequest request) {
         HttpSession session = request.getSession(false);
         if (session == null) {
             throw new ApplicationException(ErrorCode.UNAUTHORIZED_REQUEST, "로그인이 필요합니다.");
         }
         List<PostSimpleResponseDto> postsList = postService.getAllPosts();
-        return ResponseEntity.ok(postsList);
+        return ResponseEntity.status(HttpStatus.OK).body(new ApiResponseDto<>("posts_list_success", postsList));
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<PostDetailResponseDto> getPostDetail(@PathVariable(name = "id") Long postId,
+    public ResponseEntity<ApiResponseDto<PostDetailResponseDto>> getPostDetail(@PathVariable(name = "id") Long postId,
                                                                HttpServletRequest request) {
         HttpSession session = request.getSession(false);
         if (session == null) {
             throw new ApplicationException(ErrorCode.UNAUTHORIZED_REQUEST, "로그인이 필요합니다.");
         }
         PostDetailResponseDto post = postService.getDetailPost(postId);
-        return ResponseEntity.ok(post);
+        return ResponseEntity.status(HttpStatus.OK).body(new ApiResponseDto<>("post_detail_success", post));
     }
 
     @PostMapping
