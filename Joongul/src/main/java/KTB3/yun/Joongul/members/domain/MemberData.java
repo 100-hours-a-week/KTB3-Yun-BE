@@ -8,7 +8,7 @@ import java.util.Map;
 public class MemberData {
 
     public static Map<Long, Member> MEMBERS = new HashMap<>();
-    volatile public static Long sequence = 3L;
+    public static Long memberSequence = 3L;
 
     //isExist.. 관련 메서드들을 작성하며 email과 nickname을 key로 하는 Map이 필요하다고 느꼈습니다.
     public static Map<String, Long> EMAILS = new HashMap<>();

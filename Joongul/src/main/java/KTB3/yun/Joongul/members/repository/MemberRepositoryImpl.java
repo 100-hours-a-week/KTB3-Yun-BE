@@ -8,7 +8,7 @@ import KTB3.yun.Joongul.members.dto.SignupRequestDto;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Repository;
 
-import static KTB3.yun.Joongul.members.domain.MemberData.sequence;
+import static KTB3.yun.Joongul.members.domain.MemberData.memberSequence;
 
 @Repository
 public class MemberRepositoryImpl implements MemberRepository {
@@ -20,12 +20,13 @@ public class MemberRepositoryImpl implements MemberRepository {
     }
 
     @Override
+    //memberSequence 변수의 메모리 가시성과 원자성 확보를 위해 synchronized를 적용했습니다.
     synchronized public void addMember(SignupRequestDto dto) {
-        MemberData.MEMBERS.put(sequence, new Member(sequence, dto.getEmail(), passwordEncoder.encode(dto.getPassword()),
+        MemberData.MEMBERS.put(memberSequence, new Member(memberSequence, dto.getEmail(), passwordEncoder.encode(dto.getPassword()),
                 dto.getNickname(), dto.getProfileImage()));
-        MemberData.EMAILS.put(dto.getEmail(), sequence);
-        MemberData.NICKNAMES.put(dto.getNickname(), sequence);
-        sequence++;
+        MemberData.EMAILS.put(dto.getEmail(), memberSequence);
+        MemberData.NICKNAMES.put(dto.getNickname(), memberSequence);
+        memberSequence++;
     }
 
     @Override

@@ -1,20 +1,16 @@
-package KTB3.yun.Joongul.posts.domain;
+package KTB3.yun.Joongul.posts.dto;
 
 import KTB3.yun.Joongul.comments.domain.Comment;
-import KTB3.yun.Joongul.members.domain.Member;
+import KTB3.yun.Joongul.posts.domain.Post;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.Setter;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
 @Getter
-@Setter
 @AllArgsConstructor
-public class Post {
-    private Member member;
-
+public class PostDetailResponseDto {
     private Long postId;
     private String title;
     private String nickname;
@@ -25,4 +21,10 @@ public class Post {
     private int views;
     private LocalDateTime createdAt;
     private List<Comment> commentsList;
+
+    public static PostDetailResponseDto from(Post post){
+        return new PostDetailResponseDto(post.getPostId(), post.getTitle(), post.getNickname(), post.getContent(),
+                post.getPostImage(), post.getLikes(), post.getComments(), post.getViews(), post.getCreatedAt(),
+                post.getCommentsList());
+    }
 }
