@@ -1,6 +1,8 @@
 package KTB3.yun.Joongul.members.controller;
 
-import KTB3.yun.Joongul.common.dto.ApiResponse;
+import KTB3.yun.Joongul.common.dto.ApiResponseDto;
+import KTB3.yun.Joongul.common.exceptions.ApplicationException;
+import KTB3.yun.Joongul.common.exceptions.ErrorCode;
 import KTB3.yun.Joongul.members.dto.*;
 import KTB3.yun.Joongul.members.service.MemberService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -26,27 +28,71 @@ public class MemberController {
         return ResponseEntity.status(HttpStatus.CREATED).body("register_success");
     }
 
-    @GetMapping
-    public ResponseEntity<ApiResponse<MemberInfoResponseDto>> showMemberInfo(@RequestParam(name = "memberId") Long memberId) {
-        MemberInfoResponseDto info = memberService.getMemberInfo(memberId);
-        return ResponseEntity.ok().body(new ApiResponse<>("get_user_info_success", info));
+    @GetMapping("/{id}")
+    public ResponseEntity<ApiResponseDto<MemberInfoResponseDto>> getMemberInfo(@PathVariable(name = "id") Long memberId,
+                                                                               HttpServletRequest request) {
+
+        //401, 403 예외 처리하는 부분이 계속 반복되는데 어떻게 분리하면 좋을지 고민입니다.
+        HttpSession session = request.getSession(false);
+        if (session == null) {
+            throw new ApplicationException(ErrorCode.UNAUTHORIZED_REQUEST, "로그인이 필요합니다.");
+        }
+
+        Long loginId = (Long) session.getAttribute("USER_ID");
+        if (!loginId.equals(memberId)) {
+            throw new ApplicationException(ErrorCode.FORBIDDEN_REQUEST, "잘못된 접근입니다.");
+        }
+        MemberInfoResponseDto info = memberService.getMemberInfo(loginId);
+        return ResponseEntity.ok().body(new ApiResponseDto<>("get_user_info_success", info));
     }
 
-    @PutMapping
-    public ResponseEntity<String> updateMemberInfo(@RequestBody @Valid MemberInfoUpdateRequestDto memberInfoUpdateRequestDto) {
-        memberService.updateMemberInfo(memberInfoUpdateRequestDto);
+    @PutMapping("/{id}")
+    public ResponseEntity<String> updateMemberInfo(@PathVariable(name = "id") Long memberId,
+                                                   @RequestBody @Valid MemberInfoUpdateRequestDto memberInfoUpdateRequestDto,
+                                                   HttpServletRequest request) {
+        HttpSession session = request.getSession(false);
+        if (session == null) {
+            throw new ApplicationException(ErrorCode.UNAUTHORIZED_REQUEST, "로그인이 필요합니다.");
+        }
+
+        Long loginId = (Long) session.getAttribute("USER_ID");
+        if (!loginId.equals(memberId)) {
+            throw new ApplicationException(ErrorCode.FORBIDDEN_REQUEST, "잘못된 접근입니다.");
+        }
+        memberService.updateMemberInfo(memberInfoUpdateRequestDto, loginId);
         return ResponseEntity.ok().body("user_info_change_success");
     }
 
-    @PatchMapping
-    public ResponseEntity<String> modifyPassword(@RequestBody @Valid PasswordUpdateRequestDto passwordUpdateRequestDto) {
-        memberService.modifyPassword(passwordUpdateRequestDto);
+    @PatchMapping("/{id}")
+    public ResponseEntity<String> modifyPassword(@PathVariable(name = "id") Long memberId,
+                                                 @RequestBody @Valid PasswordUpdateRequestDto passwordUpdateRequestDto,
+                                                 HttpServletRequest request) {
+        HttpSession session = request.getSession(false);
+        if (session == null) {
+            throw new ApplicationException(ErrorCode.UNAUTHORIZED_REQUEST, "로그인이 필요합니다.");
+        }
+
+        Long loginId = (Long) session.getAttribute("USER_ID");
+        if (!loginId.equals(memberId)) {
+            throw new ApplicationException(ErrorCode.FORBIDDEN_REQUEST, "잘못된 접근입니다.");
+        }
+        memberService.modifyPassword(passwordUpdateRequestDto, loginId);
         return ResponseEntity.ok().body("password_change_success");
     }
 
-    @DeleteMapping
-    public ResponseEntity<Void> withdraw(@RequestParam(name = "memberId") Long memberId) {
-        memberService.withdraw(memberId);
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> withdrawMember(@PathVariable(name = "id") Long memberId,
+                                               HttpServletRequest request) {
+        HttpSession session = request.getSession(false);
+        if (session == null) {
+            throw new ApplicationException(ErrorCode.UNAUTHORIZED_REQUEST, "로그인이 필요합니다.");
+        }
+
+        Long loginId = (Long) session.getAttribute("USER_ID");
+        if (!loginId.equals(memberId)) {
+            throw new ApplicationException(ErrorCode.FORBIDDEN_REQUEST, "잘못된 접근입니다.");
+        }
+        memberService.withdraw(loginId);
         return ResponseEntity.noContent().build();
     }
 
@@ -55,7 +101,7 @@ public class MemberController {
                                                   HttpServletRequest request) {
         if (memberService.isCorrectMember(loginRequestDto)) {
             HttpSession session = request.getSession();
-            session.setAttribute("USER_ID", loginRequestDto.getEmail());
+            session.setAttribute("USER_ID", memberService.findIdByEmail(loginRequestDto.getEmail()));
         }
         return ResponseEntity.ok("login_success");
     }

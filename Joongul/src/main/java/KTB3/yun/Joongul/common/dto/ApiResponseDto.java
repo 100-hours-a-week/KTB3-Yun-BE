@@ -3,11 +3,11 @@ package KTB3.yun.Joongul.common.dto;
 import lombok.Getter;
 
 @Getter
-public class ApiResponse<T> {
+public class ApiResponseDto<T> {
     private final String message;
     private final T data;
 
-    public ApiResponse(String message, T data) {
+    public ApiResponseDto(String message, T data) {
         this.message = message;
         this.data = data;
     }

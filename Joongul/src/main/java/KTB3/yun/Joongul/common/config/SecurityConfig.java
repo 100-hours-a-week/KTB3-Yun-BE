@@ -1,4 +1,4 @@
-package KTB3.yun.Joongul.common.security;
+package KTB3.yun.Joongul.common.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

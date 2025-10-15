@@ -9,7 +9,6 @@ import lombok.Getter;
 @Getter
 @AllArgsConstructor
 public class MemberInfoUpdateRequestDto {
-    private Long memberId;
 
     @NotBlank(message = "닉네임을 입력해주세요.")
     @Pattern(

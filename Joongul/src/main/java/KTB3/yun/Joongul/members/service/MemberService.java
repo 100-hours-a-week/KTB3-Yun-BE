@@ -42,25 +42,27 @@ public class MemberService {
 
     public MemberInfoResponseDto getMemberInfo(Long memberId) {
         Member member = memberRepository.getMemberInfo(memberId);
+        if (member == null) {
+            throw new ApplicationException(ErrorCode.NOT_FOUND, "존재하지 않는 회원입니다.");
+        }
         return new MemberInfoResponseDto(member.getMemberId(),
                 member.getEmail(),
                 member.getNickname(),
                 member.getProfileImage());
     }
 
-    public void updateMemberInfo(MemberInfoUpdateRequestDto memberInfoUpdateRequestDto) {
+    public void updateMemberInfo(MemberInfoUpdateRequestDto memberInfoUpdateRequestDto, Long memberId) {
         isExistNickname = memberRepository.existsByNickname(memberInfoUpdateRequestDto.getNickname());
 
         if (isExistNickname) {
             throw new ApplicationException(ErrorCode.DUPLICATE_NICKNAME, "이미 사용 중인 닉네임입니다.");
         }
 
-        memberRepository.updateMemberInfo(memberInfoUpdateRequestDto);
+        memberRepository.updateMemberInfo(memberInfoUpdateRequestDto, memberId);
     }
 
-    public void modifyPassword(PasswordUpdateRequestDto passwordUpdateRequestDto) {
-        isUsedPassword = memberRepository.alreadyUsingPassword(passwordUpdateRequestDto.getMemberId(),
-                passwordUpdateRequestDto.getPassword());
+    public void modifyPassword(PasswordUpdateRequestDto passwordUpdateRequestDto, Long memberId) {
+        isUsedPassword = memberRepository.alreadyUsingPassword(memberId, passwordUpdateRequestDto.getPassword());
         isSameWithConfirmPassword = passwordUpdateRequestDto.getPassword().equals(passwordUpdateRequestDto.getConfirmPassword());
 
         if (isUsedPassword) {
@@ -69,7 +71,7 @@ public class MemberService {
             throw new ApplicationException(ErrorCode.NOT_SAME_WITH_CONFIRM, "비밀번호가 다릅니다.");
         }
 
-        memberRepository.modifyPassword(passwordUpdateRequestDto);
+        memberRepository.modifyPassword(passwordUpdateRequestDto, memberId);
     }
 
     public void withdraw(Long memberId) {
@@ -87,5 +89,9 @@ public class MemberService {
         }
 
         return true;
+    }
+
+    public Long findIdByEmail(String email) {
+        return memberRepository.findIdByEmail(email);
     }
 }

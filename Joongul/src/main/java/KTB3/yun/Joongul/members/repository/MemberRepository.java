@@ -8,8 +8,8 @@ import KTB3.yun.Joongul.members.dto.SignupRequestDto;
 public interface MemberRepository {
     void addMember(SignupRequestDto signupRequestDto);
     Member getMemberInfo(Long memberId);
-    void updateMemberInfo(MemberInfoUpdateRequestDto memberInfoUpdateRequestDto);
-    void modifyPassword(PasswordUpdateRequestDto passwordUpdateRequestDto);
+    void updateMemberInfo(MemberInfoUpdateRequestDto memberInfoUpdateRequestDto, Long memberId);
+    void modifyPassword(PasswordUpdateRequestDto passwordUpdateRequestDto, Long memberId);
     void deleteMember(Long memberId);
     Long findIdByEmail(String email);
     boolean existsByEmail(String email);

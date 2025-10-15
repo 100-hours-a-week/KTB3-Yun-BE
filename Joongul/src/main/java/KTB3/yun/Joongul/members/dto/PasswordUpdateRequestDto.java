@@ -8,7 +8,6 @@ import lombok.Getter;
 @Getter
 @AllArgsConstructor
 public class PasswordUpdateRequestDto {
-    private Long memberId;
 
     @NotBlank(message = "비밀번호를 입력해주세요.")
     @Pattern(

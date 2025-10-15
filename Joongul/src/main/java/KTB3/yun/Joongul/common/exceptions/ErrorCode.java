@@ -15,8 +15,7 @@ public enum ErrorCode {
     NOT_FOUND(HttpStatus.NOT_FOUND, "존재하지 않는 리소스입니다."),
     DUPLICATE_EMAIL(HttpStatus.CONFLICT, "중복된 이메일입니다."),
     DUPLICATE_NICKNAME(HttpStatus.CONFLICT, "중복된 닉네임입니다."),
-    USING_PASSWORD(HttpStatus.UNPROCESSABLE_ENTITY, "이미 사용 중인 비밀번호입니다."),
-    INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "처리 도중 예외가 발생했습니다.");
+    USING_PASSWORD(HttpStatus.UNPROCESSABLE_ENTITY, "이미 사용 중인 비밀번호입니다.");
 
     private final HttpStatusCode status;
     private final String message;

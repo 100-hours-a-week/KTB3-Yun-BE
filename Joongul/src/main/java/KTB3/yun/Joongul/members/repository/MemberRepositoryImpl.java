@@ -34,10 +34,9 @@ public class MemberRepositoryImpl implements MemberRepository {
     }
 
     @Override
-    public void updateMemberInfo(MemberInfoUpdateRequestDto dto){
-        Member member = MemberData.MEMBERS.get(dto.getMemberId());
+    public void updateMemberInfo(MemberInfoUpdateRequestDto dto, Long memberId){
+        Member member = MemberData.MEMBERS.get(memberId);
 
-        Long memberId = member.getMemberId();
         String memberNickname = member.getNickname();
         MemberData.NICKNAMES.remove(memberNickname);
         MemberData.NICKNAMES.put(dto.getNickname(), memberId);
@@ -47,8 +46,8 @@ public class MemberRepositoryImpl implements MemberRepository {
     }
 
     @Override
-    public void modifyPassword(PasswordUpdateRequestDto dto){
-        Member member = MemberData.MEMBERS.get(dto.getMemberId());
+    public void modifyPassword(PasswordUpdateRequestDto dto, Long memberId){
+        Member member = MemberData.MEMBERS.get(memberId);
         member.setPassword(passwordEncoder.encode(dto.getPassword()));
     }
 
