@@ -4,8 +4,6 @@ import KTB3.yun.Joongul.posts.domain.Post;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
-import java.time.LocalDateTime;
-
 @Getter
 @AllArgsConstructor
 public class PostSimpleResponseDto {
@@ -15,7 +13,7 @@ public class PostSimpleResponseDto {
     private int likes;
     private int comments;
     private int views;
-    private LocalDateTime createdAt;
+    private String createdAt;
 
     public static PostSimpleResponseDto from(Post post){
         return new PostSimpleResponseDto(post.getPostId(), post.getTitle(), post.getNickname(),

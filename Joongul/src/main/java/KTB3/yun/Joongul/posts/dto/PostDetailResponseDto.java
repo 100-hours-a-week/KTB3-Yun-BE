@@ -5,7 +5,6 @@ import KTB3.yun.Joongul.posts.domain.Post;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 @Getter
@@ -19,7 +18,7 @@ public class PostDetailResponseDto {
     private int likes;
     private int comments;
     private int views;
-    private LocalDateTime createdAt;
+    private String createdAt;
     private List<Comment> commentsList;
 
     public static PostDetailResponseDto from(Post post){

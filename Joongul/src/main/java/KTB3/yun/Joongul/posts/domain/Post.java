@@ -6,7 +6,6 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 @Getter
@@ -23,6 +22,6 @@ public class Post {
     private int likes;
     private int comments;
     private int views;
-    private LocalDateTime createdAt;
+    private String createdAt;
     private List<Comment> commentsList;
 }

@@ -12,6 +12,7 @@ import KTB3.yun.Joongul.posts.dto.PostWriteRequestDto;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -49,7 +50,7 @@ public class PostRepositoryImpl implements PostRepository {
         PostData.POSTS.put(postSequence, new Post(memberRepository.getMemberInfo(memberId), postSequence,
                 dto.getTitle(), memberRepository.getMemberInfo(memberId).getNickname(),
                 dto.getContent(), dto.getPostImage(), 0, 0, 0,
-                LocalDateTime.now(), new ArrayList<>()));
+                LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")), new ArrayList<>()));
 
         Post post = PostData.POSTS.get(postSequence);
         postSequence++;
