@@ -39,6 +39,8 @@ public class PostRepositoryImpl implements PostRepository {
         if (post.isEmpty()) {
             throw new ApplicationException(ErrorCode.NOT_FOUND, "존재하지 않는 리소스입니다.");
         }
+        Post postData = post.get();
+        postData.setViews(post.get().getViews()+1);
         return PostDetailResponseDto.from(post.get());
     }
 
