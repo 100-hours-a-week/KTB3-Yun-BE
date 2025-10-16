@@ -47,7 +47,7 @@ public class PostRepositoryImpl implements PostRepository {
 
     @Override
     synchronized public PostDetailResponseDto save(PostWriteRequestDto dto, Long memberId) {
-        PostData.POSTS.put(postSequence, new Post(memberRepository.getMemberInfo(memberId), postSequence,
+        PostData.POSTS.put(postSequence, new Post(memberId, postSequence,
                 dto.getTitle(), memberRepository.getMemberInfo(memberId).getNickname(),
                 dto.getContent(), dto.getPostImage(), 0, 0, 0,
                 LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")), new ArrayList<>()));
@@ -61,7 +61,7 @@ public class PostRepositoryImpl implements PostRepository {
     @Override
     public PostDetailResponseDto update(Long postId, PostUpdateRequestDto dto, Long memberId) {
         Post oldPost = PostData.POSTS.get(postId);
-        PostData.POSTS.put(postId, new Post(memberRepository.getMemberInfo(memberId), postId,
+        PostData.POSTS.put(postId, new Post(memberId, postId,
                 dto.getTitle(), memberRepository.getMemberInfo(memberId).getNickname(),
                 dto.getContent(), dto.getPostImage(), oldPost.getLikes(), oldPost.getComments(), oldPost.getViews(),
                 oldPost.getCreatedAt(), oldPost.getCommentsList()));
@@ -79,6 +79,6 @@ public class PostRepositoryImpl implements PostRepository {
     @Override
     public Long findMemberIdByPostId(Long postId) {
         Post post = PostData.POSTS.get(postId);
-        return post.getMember().getMemberId();
+        return post.getMemberId();
     }
 }

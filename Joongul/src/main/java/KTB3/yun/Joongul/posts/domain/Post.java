@@ -1,7 +1,6 @@
 package KTB3.yun.Joongul.posts.domain;
 
 import KTB3.yun.Joongul.comments.domain.Comment;
-import KTB3.yun.Joongul.members.domain.Member;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
@@ -12,7 +11,7 @@ import java.util.List;
 @Setter
 @AllArgsConstructor
 public class Post {
-    private Member member;
+    private Long memberId;
 
     private Long postId;
     private String title;
