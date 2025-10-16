@@ -2,6 +2,7 @@ package KTB3.yun.Joongul.posts.repository;
 
 import KTB3.yun.Joongul.common.exceptions.ApplicationException;
 import KTB3.yun.Joongul.common.exceptions.ErrorCode;
+import KTB3.yun.Joongul.likes.domain.LikeData;
 import KTB3.yun.Joongul.members.repository.MemberRepository;
 import KTB3.yun.Joongul.posts.domain.Post;
 import KTB3.yun.Joongul.posts.domain.PostData;
@@ -13,9 +14,7 @@ import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 import static KTB3.yun.Joongul.posts.domain.PostData.postSequence;
 
@@ -53,8 +52,8 @@ public class PostRepositoryImpl implements PostRepository {
                 LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")), new ArrayList<>()));
 
         Post post = PostData.POSTS.get(postSequence);
+        LikeData.LIKES.put(postSequence, new HashSet<>(Set.of()));
         postSequence++;
-
         return PostDetailResponseDto.from(post);
     }
 

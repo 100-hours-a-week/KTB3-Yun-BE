@@ -26,4 +26,8 @@ public class PostDetailResponseDto {
                 post.getPostImage(), post.getLikes(), post.getComments(), post.getViews(), post.getCreatedAt(),
                 post.getCommentsList());
     }
+
+    public void setLikes(int likes) {
+        this.likes = likes;
+    }
 }
