@@ -1,5 +1,6 @@
 package KTB3.yun.Joongul.posts.service;
 
+import KTB3.yun.Joongul.comments.service.CommentService;
 import KTB3.yun.Joongul.posts.dto.PostDetailResponseDto;
 import KTB3.yun.Joongul.posts.dto.PostSimpleResponseDto;
 import KTB3.yun.Joongul.posts.dto.PostUpdateRequestDto;
@@ -12,9 +13,11 @@ import java.util.List;
 @Service
 public class PostService {
     private final PostRepository postRepository;
+    private final CommentService commentService;
 
-    public PostService(PostRepository postRepository) {
+    public PostService(PostRepository postRepository, CommentService commentService) {
         this.postRepository = postRepository;
+        this.commentService = commentService;
     }
 
     public List<PostSimpleResponseDto> getAllPosts() {
@@ -22,7 +25,9 @@ public class PostService {
     }
 
     public PostDetailResponseDto getDetailPost(Long postId) {
-        return postRepository.findById(postId);
+        PostDetailResponseDto post = postRepository.findById(postId);
+        post.setCommentsList(commentService.getComments(postId));
+        return post;
     }
 
     public PostDetailResponseDto savePost(PostWriteRequestDto postWriteRequestDto, Long memberId) {

@@ -1,6 +1,6 @@
 package KTB3.yun.Joongul.posts.domain;
 
-import KTB3.yun.Joongul.comments.domain.Comment;
+import KTB3.yun.Joongul.comments.dto.CommentResponseDto;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
@@ -22,5 +22,5 @@ public class Post {
     private int comments;
     private int views;
     private String createdAt;
-    private List<Comment> commentsList;
+    private List<CommentResponseDto> commentsList;
 }
