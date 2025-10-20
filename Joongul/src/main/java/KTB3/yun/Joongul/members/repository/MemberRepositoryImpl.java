@@ -2,7 +2,6 @@ package KTB3.yun.Joongul.members.repository;
 
 import KTB3.yun.Joongul.members.domain.Member;
 import KTB3.yun.Joongul.members.domain.MemberData;
-import KTB3.yun.Joongul.members.dto.MemberInfoUpdateRequestDto;
 import org.springframework.stereotype.Repository;
 
 import static KTB3.yun.Joongul.members.domain.MemberData.memberSequence;
@@ -25,15 +24,15 @@ public class MemberRepositoryImpl implements MemberRepository {
     }
 
     @Override
-    public void updateMemberInfo(MemberInfoUpdateRequestDto dto, Long memberId){
+    public void updateMemberInfo(String nickname, String profileImage, Long memberId){
         Member member = MemberData.MEMBERS.get(memberId);
 
         String memberNickname = member.getNickname();
         MemberData.NICKNAMES.remove(memberNickname);
-        MemberData.NICKNAMES.put(dto.getNickname(), memberId);
+        MemberData.NICKNAMES.put(nickname, memberId);
 
-        member.setNickname(dto.getNickname());
-        member.setProfileImage(dto.getProfileImage());
+        member.setNickname(nickname);
+        member.setProfileImage(profileImage);
     }
 
     @Override

@@ -60,14 +60,14 @@ public class MemberService {
                 member.getProfileImage());
     }
 
-    public void updateMemberInfo(MemberInfoUpdateRequestDto memberInfoUpdateRequestDto, Long memberId) {
-        isExistNickname = memberRepository.existsByNickname(memberInfoUpdateRequestDto.getNickname());
+    public void updateMemberInfo(MemberInfoUpdateRequestDto dto, Long memberId) {
+        isExistNickname = memberRepository.existsByNickname(dto.getNickname());
 
         if (isExistNickname) {
             throw new ApplicationException(ErrorCode.DUPLICATE_NICKNAME, "이미 사용 중인 닉네임입니다.");
         }
 
-        memberRepository.updateMemberInfo(memberInfoUpdateRequestDto, memberId);
+        memberRepository.updateMemberInfo(dto.getNickname(), dto.getProfileImage(), memberId);
     }
 
     public void modifyPassword(PasswordUpdateRequestDto passwordUpdateRequestDto, Long memberId) {
