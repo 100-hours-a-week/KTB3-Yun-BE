@@ -7,7 +7,6 @@ import KTB3.yun.Joongul.members.domain.MemberData;
 import KTB3.yun.Joongul.members.dto.*;
 import KTB3.yun.Joongul.members.repository.MemberRepository;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import static KTB3.yun.Joongul.members.domain.MemberData.memberSequence;
@@ -16,7 +15,7 @@ import static KTB3.yun.Joongul.members.domain.MemberData.memberSequence;
 public class MemberService {
 
     private final MemberRepository memberRepository;
-    private final PasswordEncoder passwordEncoder;
+    private final BCryptPasswordEncoder passwordEncoder;
 
     //이런 식으로 비즈니스 로직 검사에 변수를 활용하면 좀 더 가독성이 좋아지지 않을까 생각했습니다.
     private boolean isExistEmail;
@@ -26,9 +25,9 @@ public class MemberService {
     private boolean isCorrectEmail;
     private boolean isCorrectPassword;
 
-    public MemberService(MemberRepository memberRepository) {
+    public MemberService(MemberRepository memberRepository, BCryptPasswordEncoder passwordEncoder) {
         this.memberRepository = memberRepository;
-        this.passwordEncoder = new BCryptPasswordEncoder();
+        this.passwordEncoder = passwordEncoder;
     }
 
     public void signup(SignUpRequestDto signupRequestDto) {

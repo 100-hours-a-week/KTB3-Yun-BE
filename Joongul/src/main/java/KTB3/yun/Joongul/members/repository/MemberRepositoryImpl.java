@@ -66,7 +66,7 @@ public class MemberRepositoryImpl implements MemberRepository {
 
     /*
 
-    비밀번호 인코딩을 Repository 계층에서 하고 있음 -> SRP 위반
+    비밀번호 인코딩 및 비즈니스 로직 검사를 Repository 계층에서 하고 있음 -> SRP 위반
 
     @Override
     public boolean alreadyUsingPassword(Long memberId, String password) {
