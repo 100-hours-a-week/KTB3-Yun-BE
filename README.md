@@ -74,7 +74,7 @@ DTO는 '요청 혹은 응답 원본을 전달해주는 역할'을 하며,
 
 Repository는 '데이터 저장소(DB)와 도메인(Entity)을 매핑해주는 역할'을 한다고 정리했습니다.
 
-이렇게 정리를 하고 나니 기존 회원가입 메서드에서 `SignUpRequestDto`를 받고 있는 것이 적절하지 못한 구조라는 생각이 들었고 해당 부분까지 리팩토링 진행하였습니다.
+이렇게 정리를 하고 나니 기존 `MemberRepositoryImpl` 내의 메서드들이 `SignUpRequestDto`를 파라미터로 받고 있는 것이 적절하지 못한 구조라는 생각이 들었고 해당 부분까지 리팩토링 진행하였습니다.
 
 
 ## 리팩토링 성과
@@ -142,6 +142,6 @@ public class MemberService {
 ```
 이번 리팩토링을 통해 `MemberService`와 `MemberRepositroyImpl`를 SRP 관점에서 개선할 수 있었습니다.
 
-`MemberRepositoryImpl`은 더이상 비밀번호 인코딩 및 유효성 검사를 진행하지 않고 오로지 `Member` 엔티티와 관련된 로직만 수행하면 됩니다.
+`MemberRepositoryImpl`은 더이상 비밀번호의 인코딩과 유효성 검사 및 DTO <-> Entity 변환 로직을 진행하지 않고 오로지 `Member` 엔티티와 관련된 로직만 수행하면 됩니다.
 
 해당 로직들은 모두 `MemberService`에서 수행하게끔 했으며, 비즈니스 로직을 맡은 Service 계층과 DB <-> Entity 매핑을 맡은 Repository 계층을 더욱 명확히 분리함으로써 유지보수성과 재사용성을 개선하였습니다.
