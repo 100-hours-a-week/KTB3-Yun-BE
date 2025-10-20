@@ -3,14 +3,20 @@ package KTB3.yun.Joongul.members.service;
 import KTB3.yun.Joongul.common.exceptions.ApplicationException;
 import KTB3.yun.Joongul.common.exceptions.ErrorCode;
 import KTB3.yun.Joongul.members.domain.Member;
+import KTB3.yun.Joongul.members.domain.MemberData;
 import KTB3.yun.Joongul.members.dto.*;
 import KTB3.yun.Joongul.members.repository.MemberRepository;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import static KTB3.yun.Joongul.members.domain.MemberData.memberSequence;
 
 @Service
 public class MemberService {
 
     private final MemberRepository memberRepository;
+    private final PasswordEncoder passwordEncoder;
 
     //이런 식으로 비즈니스 로직 검사에 변수를 활용하면 좀 더 가독성이 좋아지지 않을까 생각했습니다.
     private boolean isExistEmail;
@@ -22,9 +28,10 @@ public class MemberService {
 
     public MemberService(MemberRepository memberRepository) {
         this.memberRepository = memberRepository;
+        this.passwordEncoder = new BCryptPasswordEncoder();
     }
 
-    public void signup(SignupRequestDto signupRequestDto) {
+    public void signup(SignUpRequestDto signupRequestDto) {
         isExistEmail = memberRepository.existsByEmail(signupRequestDto.getEmail());
         isExistNickname = memberRepository.existsByNickname(signupRequestDto.getNickname());
         isSameWithConfirmPassword = signupRequestDto.getPassword().equals(signupRequestDto.getConfirmPassword());
@@ -37,7 +44,10 @@ public class MemberService {
             throw new ApplicationException(ErrorCode.NOT_SAME_WITH_CONFIRM, "비밀번호가 다릅니다.");
         }
 
-        memberRepository.addMember(signupRequestDto);
+        String encodedPassword = passwordEncoder.encode(signupRequestDto.getPassword());
+        Member member = new Member(memberSequence, signupRequestDto.getEmail(), encodedPassword,
+                signupRequestDto.getNickname(), signupRequestDto.getProfileImage());
+        memberRepository.addMember(member);
     }
 
     public MemberInfoResponseDto getMemberInfo(Long memberId) {
@@ -62,7 +72,7 @@ public class MemberService {
     }
 
     public void modifyPassword(PasswordUpdateRequestDto passwordUpdateRequestDto, Long memberId) {
-        isUsedPassword = memberRepository.alreadyUsingPassword(memberId, passwordUpdateRequestDto.getPassword());
+        isUsedPassword = alreadyUsingPassword(memberId, passwordUpdateRequestDto.getPassword());
         isSameWithConfirmPassword = passwordUpdateRequestDto.getPassword().equals(passwordUpdateRequestDto.getConfirmPassword());
 
         if (isUsedPassword) {
@@ -71,7 +81,8 @@ public class MemberService {
             throw new ApplicationException(ErrorCode.NOT_SAME_WITH_CONFIRM, "비밀번호가 다릅니다.");
         }
 
-        memberRepository.modifyPassword(passwordUpdateRequestDto, memberId);
+        String newEncodedPassword = passwordEncoder.encode(passwordUpdateRequestDto.getPassword());
+        memberRepository.modifyPassword(newEncodedPassword, memberId);
     }
 
     public void withdraw(Long memberId) {
@@ -82,7 +93,7 @@ public class MemberService {
     public boolean isCorrectMember(LoginRequestDto loginRequestDto) {
         Long memberId = memberRepository.findIdByEmail(loginRequestDto.getEmail());
         isCorrectEmail = memberRepository.getMemberInfo(memberId).getEmail().equals(loginRequestDto.getEmail());
-        isCorrectPassword = memberRepository.isCorrectPassword(memberId, loginRequestDto.getPassword());
+        isCorrectPassword = isCorrectPassword(memberId, loginRequestDto.getPassword());
 
         if (!isCorrectEmail || !isCorrectPassword) {
             throw new ApplicationException(ErrorCode.INVALID_EMAIL_OR_PASSWORD, "이메일 또는 비밀번호가 다릅니다.");
@@ -93,5 +104,13 @@ public class MemberService {
 
     public Long findIdByEmail(String email) {
         return memberRepository.findIdByEmail(email);
+    }
+
+    public boolean alreadyUsingPassword(Long memberId, String password) {
+        return passwordEncoder.matches(password, MemberData.MEMBERS.get(memberId).getPassword());
+    }
+
+    public boolean isCorrectPassword(Long memberId, String password) {
+        return passwordEncoder.matches(password, MemberData.MEMBERS.get(memberId).getPassword());
     }
 }

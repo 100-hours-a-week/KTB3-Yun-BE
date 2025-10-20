@@ -3,9 +3,6 @@ package KTB3.yun.Joongul.members.repository;
 import KTB3.yun.Joongul.members.domain.Member;
 import KTB3.yun.Joongul.members.domain.MemberData;
 import KTB3.yun.Joongul.members.dto.MemberInfoUpdateRequestDto;
-import KTB3.yun.Joongul.members.dto.PasswordUpdateRequestDto;
-import KTB3.yun.Joongul.members.dto.SignupRequestDto;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Repository;
 
 import static KTB3.yun.Joongul.members.domain.MemberData.memberSequence;
@@ -13,19 +10,12 @@ import static KTB3.yun.Joongul.members.domain.MemberData.memberSequence;
 @Repository
 public class MemberRepositoryImpl implements MemberRepository {
 
-    private final BCryptPasswordEncoder passwordEncoder;
-
-    public MemberRepositoryImpl(BCryptPasswordEncoder passwordEncoder) {
-        this.passwordEncoder = passwordEncoder;
-    }
-
     @Override
     //memberSequence 변수의 메모리 가시성과 원자성 확보를 위해 synchronized를 적용했습니다.
-    synchronized public void addMember(SignupRequestDto dto) {
-        MemberData.MEMBERS.put(memberSequence, new Member(memberSequence, dto.getEmail(), passwordEncoder.encode(dto.getPassword()),
-                dto.getNickname(), dto.getProfileImage()));
-        MemberData.EMAILS.put(dto.getEmail(), memberSequence);
-        MemberData.NICKNAMES.put(dto.getNickname(), memberSequence);
+    synchronized public void addMember(Member member) {
+        MemberData.MEMBERS.put(memberSequence, member);
+        MemberData.EMAILS.put(member.getEmail(), memberSequence);
+        MemberData.NICKNAMES.put(member.getNickname(), memberSequence);
         memberSequence++;
     }
 
@@ -47,9 +37,9 @@ public class MemberRepositoryImpl implements MemberRepository {
     }
 
     @Override
-    public void modifyPassword(PasswordUpdateRequestDto dto, Long memberId){
+    public void modifyPassword(String newPassword, Long memberId){
         Member member = MemberData.MEMBERS.get(memberId);
-        member.setPassword(passwordEncoder.encode(dto.getPassword()));
+        member.setPassword(newPassword);
     }
 
     @Override
@@ -74,6 +64,10 @@ public class MemberRepositoryImpl implements MemberRepository {
         return MemberData.NICKNAMES.containsKey(nickname);
     }
 
+    /*
+
+    비밀번호 인코딩을 Repository 계층에서 하고 있음 -> SRP 위반
+
     @Override
     public boolean alreadyUsingPassword(Long memberId, String password) {
         return passwordEncoder.matches(password, MemberData.MEMBERS.get(memberId).getPassword());
@@ -83,4 +77,5 @@ public class MemberRepositoryImpl implements MemberRepository {
     public boolean isCorrectPassword(Long memberId, String password) {
         return passwordEncoder.matches(password, MemberData.MEMBERS.get(memberId).getPassword());
     }
+     */
 }

@@ -8,7 +8,7 @@ import lombok.Getter;
 
 @Getter
 @AllArgsConstructor
-public class SignupRequestDto {
+public class SignUpRequestDto {
 
     @NotBlank(message = "이메일을 입력해주세요.")
     @Pattern(

@@ -27,7 +27,7 @@ public class MemberController {
 
     @Operation(summary = "회원 가입 API")
     @PostMapping
-    public ResponseEntity<String> signup(@RequestBody @Valid SignupRequestDto signupRequestDto) {
+    public ResponseEntity<String> signup(@RequestBody @Valid SignUpRequestDto signupRequestDto) {
         memberService.signup(signupRequestDto);
         return ResponseEntity.status(HttpStatus.CREATED).body("register_success");
     }
