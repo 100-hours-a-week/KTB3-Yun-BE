@@ -8,6 +8,8 @@ import KTB3.yun.Joongul.posts.dto.PostSimpleResponseDto;
 import KTB3.yun.Joongul.posts.dto.PostUpdateRequestDto;
 import KTB3.yun.Joongul.posts.dto.PostWriteRequestDto;
 import KTB3.yun.Joongul.posts.service.PostService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
@@ -17,6 +19,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+@Tag(name = "Post-Controller", description = "Post CRUD API")
 @RestController
 @RequestMapping("/posts")
 public class PostController {
@@ -26,6 +29,7 @@ public class PostController {
         this.postService = postService;
     }
 
+    @Operation(summary = "게시글 목록 조회 API")
     @GetMapping
     public ResponseEntity<ApiResponseDto<List<PostSimpleResponseDto>>> getPostList(HttpServletRequest request) {
         HttpSession session = request.getSession(false);
@@ -36,6 +40,7 @@ public class PostController {
         return ResponseEntity.status(HttpStatus.OK).body(new ApiResponseDto<>("posts_list_success", postsList));
     }
 
+    @Operation(summary = "게시글 단건 상세 조회 API")
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponseDto<PostDetailResponseDto>> getPostDetail(@PathVariable(name = "id") Long postId,
                                                                HttpServletRequest request) {
@@ -47,6 +52,7 @@ public class PostController {
         return ResponseEntity.status(HttpStatus.OK).body(new ApiResponseDto<>("post_detail_success", post));
     }
 
+    @Operation(summary = "게시글 작성 API")
     @PostMapping
     public ResponseEntity<ApiResponseDto<PostDetailResponseDto>> savePost(@RequestBody @Valid PostWriteRequestDto postWriteRequestDto,
                                                           HttpServletRequest request) {
@@ -60,6 +66,7 @@ public class PostController {
                 .body(new ApiResponseDto<>("post_write_success", savedPost));
     }
 
+    @Operation(summary = "게시글 수정 API")
     @PutMapping("/{id}")
     public ResponseEntity<ApiResponseDto<PostDetailResponseDto>> updatePost(@PathVariable(name = "id") Long postId,
                                                                             @RequestBody @Valid PostUpdateRequestDto postUpdateRequestDto,
@@ -78,6 +85,7 @@ public class PostController {
                 .body(new ApiResponseDto<>("post_update_success", updatedPost));
     }
 
+    @Operation(summary = "게시글 삭제 API")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deletePost(@PathVariable(name = "id") Long postId, HttpServletRequest request) {
         HttpSession session = request.getSession(false);

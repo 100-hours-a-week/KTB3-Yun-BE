@@ -7,12 +7,15 @@ import KTB3.yun.Joongul.comments.service.CommentService;
 import KTB3.yun.Joongul.common.dto.ApiResponseDto;
 import KTB3.yun.Joongul.common.exceptions.ApplicationException;
 import KTB3.yun.Joongul.common.exceptions.ErrorCode;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+@Tag(name = "Comment-Controller", description = "Comment CRUD API")
 @RestController
 @RequestMapping("/posts/{postId}/comments")
 public class CommentController {
@@ -22,6 +25,7 @@ public class CommentController {
         this.commentService = commentService;
     }
 
+    @Operation(summary = "댓글 작성 API")
     @PostMapping
     public ResponseEntity<ApiResponseDto<CommentResponseDto>> writeComment(@PathVariable(name = "postId") Long postId,
                                                                            @RequestBody CommentWriteRequestDto dto,
@@ -36,6 +40,7 @@ public class CommentController {
                 .body(new ApiResponseDto<>("comment_write_success", comment));
     }
 
+    @Operation(summary = "댓글 수정 API")
     @PutMapping("/{commentId}")
     public ResponseEntity<ApiResponseDto<CommentResponseDto>> updateComment(@PathVariable(name = "postId") Long postId,
                                                                             @PathVariable(name = "commentId") Long commentId,
@@ -53,6 +58,7 @@ public class CommentController {
         return ResponseEntity.status(HttpStatus.OK).body(new ApiResponseDto<>("comment_update_success", comment));
     }
 
+    @Operation(summary = "댓글 삭제 API")
     @DeleteMapping("/{commentId}")
     public ResponseEntity<Void> deleteComment(@PathVariable(name = "postId") Long postId,
                                               @PathVariable(name = "commentId") Long commentId,

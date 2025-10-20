@@ -1,15 +1,21 @@
 package KTB3.yun.Joongul.common.exceptions;
 
+import KTB3.yun.Joongul.comments.controller.CommentController;
+import KTB3.yun.Joongul.likes.controller.LikeController;
+import KTB3.yun.Joongul.members.controller.MemberController;
+import KTB3.yun.Joongul.posts.controller.PostController;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-@RestControllerAdvice
+@RestControllerAdvice(annotations = RestController.class,
+        basePackageClasses = {CommentController.class, MemberController.class, PostController.class, LikeController.class})
 public class GlobalExceptionHandler {
 
     //각 상황마다 원하는 예외를 던져주기 위해 작성했습니다.
