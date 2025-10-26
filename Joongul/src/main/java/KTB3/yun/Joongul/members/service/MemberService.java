@@ -3,7 +3,6 @@ package KTB3.yun.Joongul.members.service;
 import KTB3.yun.Joongul.common.exceptions.ApplicationException;
 import KTB3.yun.Joongul.common.exceptions.ErrorCode;
 import KTB3.yun.Joongul.members.domain.Member;
-import KTB3.yun.Joongul.members.domain.MemberData;
 import KTB3.yun.Joongul.members.dto.*;
 import KTB3.yun.Joongul.members.repository.MemberRepository;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -71,7 +70,7 @@ public class MemberService {
     }
 
     public void modifyPassword(PasswordUpdateRequestDto passwordUpdateRequestDto, Long memberId) {
-        isUsedPassword = alreadyUsingPassword(memberId, passwordUpdateRequestDto.getPassword());
+        isUsedPassword = isValidPassword(memberId, passwordUpdateRequestDto.getPassword());
         isSameWithConfirmPassword = passwordUpdateRequestDto.getPassword().equals(passwordUpdateRequestDto.getConfirmPassword());
 
         if (isUsedPassword) {
@@ -92,7 +91,7 @@ public class MemberService {
     public boolean isCorrectMember(LoginRequestDto loginRequestDto) {
         Long memberId = memberRepository.findIdByEmail(loginRequestDto.getEmail());
         isCorrectEmail = memberRepository.getMemberInfo(memberId).getEmail().equals(loginRequestDto.getEmail());
-        isCorrectPassword = isCorrectPassword(memberId, loginRequestDto.getPassword());
+        isCorrectPassword = isValidPassword(memberId, loginRequestDto.getPassword());
 
         if (!isCorrectEmail || !isCorrectPassword) {
             throw new ApplicationException(ErrorCode.INVALID_EMAIL_OR_PASSWORD, "이메일 또는 비밀번호가 다릅니다.");
@@ -105,11 +104,8 @@ public class MemberService {
         return memberRepository.findIdByEmail(email);
     }
 
-    public boolean alreadyUsingPassword(Long memberId, String password) {
-        return passwordEncoder.matches(password, MemberData.MEMBERS.get(memberId).getPassword());
-    }
-
-    public boolean isCorrectPassword(Long memberId, String password) {
-        return passwordEncoder.matches(password, MemberData.MEMBERS.get(memberId).getPassword());
+    public boolean isValidPassword(Long memberId, String password) {
+        String savedPassword = memberRepository.getMemberInfo(memberId).getPassword();
+        return passwordEncoder.matches(password, savedPassword);
     }
 }
