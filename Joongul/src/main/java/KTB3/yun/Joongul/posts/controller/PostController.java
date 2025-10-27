@@ -24,6 +24,7 @@ import java.util.List;
 @RequestMapping("/posts")
 public class PostController {
     private final PostService postService;
+    private final static String USER_ID = "USER_ID";
 
     public PostController(PostService postService) {
         this.postService = postService;
@@ -34,7 +35,7 @@ public class PostController {
     public ResponseEntity<ApiResponseDto<List<PostSimpleResponseDto>>> getPostList(HttpServletRequest request) {
         HttpSession session = request.getSession(false);
         if (session == null) {
-            throw new ApplicationException(ErrorCode.UNAUTHORIZED_REQUEST, "로그인이 필요합니다.");
+            throw new ApplicationException(ErrorCode.UNAUTHORIZED_REQUEST, ErrorCode.UNAUTHORIZED_REQUEST.getMessage());
         }
         List<PostSimpleResponseDto> postsList = postService.getAllPosts();
         return ResponseEntity.status(HttpStatus.OK).body(new ApiResponseDto<>("posts_list_success", postsList));
@@ -46,7 +47,7 @@ public class PostController {
                                                                HttpServletRequest request) {
         HttpSession session = request.getSession(false);
         if (session == null) {
-            throw new ApplicationException(ErrorCode.UNAUTHORIZED_REQUEST, "로그인이 필요합니다.");
+            throw new ApplicationException(ErrorCode.UNAUTHORIZED_REQUEST, ErrorCode.UNAUTHORIZED_REQUEST.getMessage());
         }
         PostDetailResponseDto post = postService.getDetailPost(postId);
         return ResponseEntity.status(HttpStatus.OK).body(new ApiResponseDto<>("post_detail_success", post));
@@ -58,9 +59,9 @@ public class PostController {
                                                           HttpServletRequest request) {
         HttpSession session = request.getSession(false);
         if (session == null) {
-            throw new ApplicationException(ErrorCode.UNAUTHORIZED_REQUEST, "로그인이 필요합니다.");
+            throw new ApplicationException(ErrorCode.UNAUTHORIZED_REQUEST, ErrorCode.UNAUTHORIZED_REQUEST.getMessage());
         }
-        Long loginId = (Long) session.getAttribute("USER_ID");
+        Long loginId = (Long) session.getAttribute(USER_ID);
         PostDetailResponseDto savedPost = postService.savePost(postWriteRequestDto, loginId);
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(new ApiResponseDto<>("post_write_success", savedPost));
@@ -73,12 +74,12 @@ public class PostController {
                                                                             HttpServletRequest request) {
         HttpSession session = request.getSession(false);
         if (session == null) {
-            throw new ApplicationException(ErrorCode.UNAUTHORIZED_REQUEST, "로그인이 필요합니다.");
+            throw new ApplicationException(ErrorCode.UNAUTHORIZED_REQUEST, ErrorCode.UNAUTHORIZED_REQUEST.getMessage());
         }
-        Long loginId = (Long) session.getAttribute("USER_ID");
+        Long loginId = (Long) session.getAttribute(USER_ID);
         Long postMemberId = postService.getMemberId(postId);
         if (!loginId.equals(postMemberId)) {
-            throw new ApplicationException(ErrorCode.FORBIDDEN_REQUEST, "잘못된 접근입니다.");
+            throw new ApplicationException(ErrorCode.FORBIDDEN_REQUEST, ErrorCode.FORBIDDEN_REQUEST.getMessage());
         }
         PostDetailResponseDto updatedPost = postService.updatePost(postId, postUpdateRequestDto, loginId);
         return ResponseEntity.status(HttpStatus.OK)
@@ -90,12 +91,12 @@ public class PostController {
     public ResponseEntity<Void> deletePost(@PathVariable(name = "id") Long postId, HttpServletRequest request) {
         HttpSession session = request.getSession(false);
         if (session == null) {
-            throw new ApplicationException(ErrorCode.UNAUTHORIZED_REQUEST, "로그인이 필요합니다.");
+            throw new ApplicationException(ErrorCode.UNAUTHORIZED_REQUEST, ErrorCode.UNAUTHORIZED_REQUEST.getMessage());
         }
-        Long loginId = (Long) session.getAttribute("USER_ID");
+        Long loginId = (Long) session.getAttribute(USER_ID);
         Long postMemberId = postService.getMemberId(postId);
         if (!loginId.equals(postMemberId)) {
-            throw new ApplicationException(ErrorCode.FORBIDDEN_REQUEST, "잘못된 접근입니다.");
+            throw new ApplicationException(ErrorCode.FORBIDDEN_REQUEST, ErrorCode.FORBIDDEN_REQUEST.getMessage());
         }
         postService.deletePost(postId);
         return ResponseEntity.noContent().build();

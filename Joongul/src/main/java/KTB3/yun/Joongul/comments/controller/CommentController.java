@@ -20,6 +20,8 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/posts/{postId}/comments")
 public class CommentController {
     private final CommentService commentService;
+    private final static String USER_ID = "USER_ID";
+
 
     public CommentController(CommentService commentService) {
         this.commentService = commentService;
@@ -32,9 +34,9 @@ public class CommentController {
                                                                            HttpServletRequest request) {
         HttpSession session = request.getSession(false);
         if (session == null) {
-            throw new ApplicationException(ErrorCode.UNAUTHORIZED_REQUEST, "로그인이 필요합니다.");
+            throw new ApplicationException(ErrorCode.UNAUTHORIZED_REQUEST, ErrorCode.UNAUTHORIZED_REQUEST.getMessage());
         }
-        Long memberId = (Long) session.getAttribute("USER_ID");
+        Long memberId = (Long) session.getAttribute(USER_ID);
         CommentResponseDto comment = commentService.writeComment(postId, dto, memberId);
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(new ApiResponseDto<>("comment_write_success", comment));
@@ -48,11 +50,11 @@ public class CommentController {
                                                                             HttpServletRequest request) {
         HttpSession session = request.getSession(false);
         if (session == null) {
-            throw new ApplicationException(ErrorCode.UNAUTHORIZED_REQUEST, "로그인이 필요합니다.");
+            throw new ApplicationException(ErrorCode.UNAUTHORIZED_REQUEST, ErrorCode.UNAUTHORIZED_REQUEST.getMessage());
         }
-        Long memberId = (Long) session.getAttribute("USER_ID");
+        Long memberId = (Long) session.getAttribute(USER_ID);
         if (!commentService.isValidMember(commentId, memberId)) {
-            throw new ApplicationException(ErrorCode.FORBIDDEN_REQUEST, "잘못된 접근입니다.");
+            throw new ApplicationException(ErrorCode.FORBIDDEN_REQUEST, ErrorCode.FORBIDDEN_REQUEST.getMessage());
         }
         CommentResponseDto comment = commentService.updateComment(postId, commentId, dto, memberId);
         return ResponseEntity.status(HttpStatus.OK).body(new ApiResponseDto<>("comment_update_success", comment));
@@ -65,11 +67,11 @@ public class CommentController {
                                               HttpServletRequest request) {
         HttpSession session = request.getSession(false);
         if (session == null) {
-            throw new ApplicationException(ErrorCode.UNAUTHORIZED_REQUEST, "로그인이 필요합니다.");
+            throw new ApplicationException(ErrorCode.UNAUTHORIZED_REQUEST, ErrorCode.UNAUTHORIZED_REQUEST.getMessage());
         }
-        Long memberId = (Long) session.getAttribute("USER_ID");
+        Long memberId = (Long) session.getAttribute(USER_ID);
         if (!commentService.isValidMember(commentId, memberId)) {
-            throw new ApplicationException(ErrorCode.FORBIDDEN_REQUEST, "잘못된 접근입니다.");
+            throw new ApplicationException(ErrorCode.FORBIDDEN_REQUEST, ErrorCode.FORBIDDEN_REQUEST.getMessage());
         }
         commentService.deleteComment(commentId, postId);
         return ResponseEntity.noContent().build();

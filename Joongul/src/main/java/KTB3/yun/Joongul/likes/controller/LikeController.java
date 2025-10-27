@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/posts/{id}/likes")
 public class LikeController {
     private final LikeService likeService;
+    private final static String USER_ID = "USER_ID";
 
     public LikeController(LikeService likeService) {
         this.likeService = likeService;
@@ -25,9 +26,9 @@ public class LikeController {
     public ResponseEntity<Void> like(@PathVariable(name = "id") Long postId, HttpServletRequest request) {
         HttpSession session = request.getSession(false);
         if (session == null) {
-            throw new ApplicationException(ErrorCode.UNAUTHORIZED_REQUEST, "로그인이 필요합니다.");
+            throw new ApplicationException(ErrorCode.UNAUTHORIZED_REQUEST, ErrorCode.UNAUTHORIZED_REQUEST.getMessage());
         }
-        Long memberId = (Long) session.getAttribute("USER_ID");
+        Long memberId = (Long) session.getAttribute(USER_ID);
         likeService.toggleLike(postId, memberId);
         return ResponseEntity.noContent().build();
     }
@@ -37,9 +38,9 @@ public class LikeController {
     public ResponseEntity<Void> unlike(@PathVariable(name = "id") Long postId, HttpServletRequest request) {
         HttpSession session = request.getSession(false);
         if (session == null) {
-            throw new ApplicationException(ErrorCode.UNAUTHORIZED_REQUEST, "로그인이 필요합니다.");
+            throw new ApplicationException(ErrorCode.UNAUTHORIZED_REQUEST, ErrorCode.UNAUTHORIZED_REQUEST.getMessage());
         }
-        Long memberId = (Long) session.getAttribute("USER_ID");
+        Long memberId = (Long) session.getAttribute(USER_ID);
         likeService.untoggleLike(postId, memberId);
         return ResponseEntity.noContent().build();
     }

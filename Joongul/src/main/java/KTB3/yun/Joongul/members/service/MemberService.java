@@ -35,11 +35,11 @@ public class MemberService {
         isSameWithConfirmPassword = signupRequestDto.getPassword().equals(signupRequestDto.getConfirmPassword());
 
         if (isExistEmail) {
-            throw new ApplicationException(ErrorCode.DUPLICATE_EMAIL, "중복된 이메일입니다.");
+            throw new ApplicationException(ErrorCode.DUPLICATE_EMAIL, ErrorCode.DUPLICATE_EMAIL.getMessage());
         } else if (isExistNickname) {
-            throw new ApplicationException(ErrorCode.DUPLICATE_NICKNAME, "중복된 닉네임입니다.");
+            throw new ApplicationException(ErrorCode.DUPLICATE_NICKNAME, ErrorCode.DUPLICATE_NICKNAME.getMessage());
         } else if (!isSameWithConfirmPassword) {
-            throw new ApplicationException(ErrorCode.NOT_SAME_WITH_CONFIRM, "비밀번호가 다릅니다.");
+            throw new ApplicationException(ErrorCode.NOT_SAME_WITH_CONFIRM, ErrorCode.NOT_SAME_WITH_CONFIRM.getMessage());
         }
 
         String encodedPassword = passwordEncoder.encode(signupRequestDto.getPassword());
@@ -51,7 +51,7 @@ public class MemberService {
     public MemberInfoResponseDto getMemberInfo(Long memberId) {
         Member member = memberRepository.getMemberInfo(memberId);
         if (member == null) {
-            throw new ApplicationException(ErrorCode.NOT_FOUND, "존재하지 않는 회원입니다.");
+            throw new ApplicationException(ErrorCode.NOT_FOUND, ErrorCode.NOT_FOUND.getMessage());
         }
         return new MemberInfoResponseDto(member.getMemberId(),
                 member.getEmail(),
@@ -63,7 +63,7 @@ public class MemberService {
         isExistNickname = memberRepository.existsByNickname(dto.getNickname());
 
         if (isExistNickname) {
-            throw new ApplicationException(ErrorCode.DUPLICATE_NICKNAME, "이미 사용 중인 닉네임입니다.");
+            throw new ApplicationException(ErrorCode.DUPLICATE_NICKNAME, ErrorCode.DUPLICATE_NICKNAME.getMessage());
         }
 
         memberRepository.updateMemberInfo(dto.getNickname(), dto.getProfileImage(), memberId);
@@ -74,9 +74,9 @@ public class MemberService {
         isSameWithConfirmPassword = passwordUpdateRequestDto.getPassword().equals(passwordUpdateRequestDto.getConfirmPassword());
 
         if (isUsedPassword) {
-            throw new ApplicationException(ErrorCode.USING_PASSWORD, "이미 사용 중인 비밀번호입니다.");
+            throw new ApplicationException(ErrorCode.USING_PASSWORD, ErrorCode.USING_PASSWORD.getMessage());
         } else if (!isSameWithConfirmPassword) {
-            throw new ApplicationException(ErrorCode.NOT_SAME_WITH_CONFIRM, "비밀번호가 다릅니다.");
+            throw new ApplicationException(ErrorCode.NOT_SAME_WITH_CONFIRM, ErrorCode.NOT_SAME_WITH_CONFIRM.getMessage());
         }
 
         String newEncodedPassword = passwordEncoder.encode(passwordUpdateRequestDto.getPassword());
@@ -94,7 +94,8 @@ public class MemberService {
         isCorrectPassword = isValidPassword(memberId, loginRequestDto.getPassword());
 
         if (!isCorrectEmail || !isCorrectPassword) {
-            throw new ApplicationException(ErrorCode.INVALID_EMAIL_OR_PASSWORD, "이메일 또는 비밀번호가 다릅니다.");
+            throw new ApplicationException(ErrorCode.INVALID_EMAIL_OR_PASSWORD,
+                    ErrorCode.INVALID_EMAIL_OR_PASSWORD.getMessage());
         }
 
         return true;

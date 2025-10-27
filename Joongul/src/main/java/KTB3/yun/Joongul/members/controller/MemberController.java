@@ -20,10 +20,12 @@ import org.springframework.web.bind.annotation.*;
 public class MemberController {
 
     private final MemberService memberService;
+    private final static String USER_ID = "USER_ID";
 
     public MemberController(MemberService memberService) {
         this.memberService = memberService;
     }
+
 
     @Operation(summary = "회원 가입 API")
     @PostMapping
@@ -40,12 +42,12 @@ public class MemberController {
         //401, 403 예외 처리하는 부분이 계속 반복되는데 어떻게 분리하면 좋을지 고민입니다.
         HttpSession session = request.getSession(false);
         if (session == null) {
-            throw new ApplicationException(ErrorCode.UNAUTHORIZED_REQUEST, "로그인이 필요합니다.");
+            throw new ApplicationException(ErrorCode.UNAUTHORIZED_REQUEST, ErrorCode.UNAUTHORIZED_REQUEST.getMessage());
         }
 
-        Long loginId = (Long) session.getAttribute("USER_ID");
+        Long loginId = (Long) session.getAttribute(USER_ID);
         if (!loginId.equals(memberId)) {
-            throw new ApplicationException(ErrorCode.FORBIDDEN_REQUEST, "잘못된 접근입니다.");
+            throw new ApplicationException(ErrorCode.FORBIDDEN_REQUEST, ErrorCode.FORBIDDEN_REQUEST.getMessage());
         }
         MemberInfoResponseDto info = memberService.getMemberInfo(loginId);
         return ResponseEntity.ok().body(new ApiResponseDto<>("get_user_info_success", info));
@@ -58,12 +60,12 @@ public class MemberController {
                                                    HttpServletRequest request) {
         HttpSession session = request.getSession(false);
         if (session == null) {
-            throw new ApplicationException(ErrorCode.UNAUTHORIZED_REQUEST, "로그인이 필요합니다.");
+            throw new ApplicationException(ErrorCode.UNAUTHORIZED_REQUEST, ErrorCode.UNAUTHORIZED_REQUEST.getMessage());
         }
 
-        Long loginId = (Long) session.getAttribute("USER_ID");
+        Long loginId = (Long) session.getAttribute(USER_ID);
         if (!loginId.equals(memberId)) {
-            throw new ApplicationException(ErrorCode.FORBIDDEN_REQUEST, "잘못된 접근입니다.");
+            throw new ApplicationException(ErrorCode.FORBIDDEN_REQUEST, ErrorCode.FORBIDDEN_REQUEST.getMessage());
         }
         memberService.updateMemberInfo(memberInfoUpdateRequestDto, loginId);
         return ResponseEntity.ok().body("user_info_change_success");
@@ -76,12 +78,12 @@ public class MemberController {
                                                  HttpServletRequest request) {
         HttpSession session = request.getSession(false);
         if (session == null) {
-            throw new ApplicationException(ErrorCode.UNAUTHORIZED_REQUEST, "로그인이 필요합니다.");
+            throw new ApplicationException(ErrorCode.UNAUTHORIZED_REQUEST, ErrorCode.UNAUTHORIZED_REQUEST.getMessage());
         }
 
-        Long loginId = (Long) session.getAttribute("USER_ID");
+        Long loginId = (Long) session.getAttribute(USER_ID);
         if (!loginId.equals(memberId)) {
-            throw new ApplicationException(ErrorCode.FORBIDDEN_REQUEST, "잘못된 접근입니다.");
+            throw new ApplicationException(ErrorCode.FORBIDDEN_REQUEST, ErrorCode.FORBIDDEN_REQUEST.getMessage());
         }
         memberService.modifyPassword(passwordUpdateRequestDto, loginId);
         return ResponseEntity.ok().body("password_change_success");
@@ -93,12 +95,12 @@ public class MemberController {
                                                HttpServletRequest request) {
         HttpSession session = request.getSession(false);
         if (session == null) {
-            throw new ApplicationException(ErrorCode.UNAUTHORIZED_REQUEST, "로그인이 필요합니다.");
+            throw new ApplicationException(ErrorCode.UNAUTHORIZED_REQUEST, ErrorCode.UNAUTHORIZED_REQUEST.getMessage());
         }
 
-        Long loginId = (Long) session.getAttribute("USER_ID");
+        Long loginId = (Long) session.getAttribute(USER_ID);
         if (!loginId.equals(memberId)) {
-            throw new ApplicationException(ErrorCode.FORBIDDEN_REQUEST, "잘못된 접근입니다.");
+            throw new ApplicationException(ErrorCode.FORBIDDEN_REQUEST, ErrorCode.FORBIDDEN_REQUEST.getMessage());
         }
         memberService.withdraw(loginId);
         return ResponseEntity.noContent().build();
