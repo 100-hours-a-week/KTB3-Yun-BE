@@ -15,7 +15,7 @@ public class LikeRepositoryImpl implements LikeRepository {
     @Override
     public void toggleLike(Long postId, Long memberId) {
         if (PostData.POSTS.get(postId) == null){
-            throw new ApplicationException(ErrorCode.NOT_FOUND, "존재하지 않는 리소스입니다.");
+            throw new ApplicationException(ErrorCode.NOT_FOUND, ErrorCode.NOT_FOUND.getMessage());
         }
         LikeData.LIKES.computeIfAbsent(postId, k -> new HashSet<>()).add(memberId);
         PostData.POSTS.get(postId).setLikes(LikeData.LIKES.get(postId).size());
@@ -24,7 +24,7 @@ public class LikeRepositoryImpl implements LikeRepository {
     @Override
     public void untoggleLike(Long postId, Long memberId) {
         if (PostData.POSTS.get(postId) == null){
-            throw new ApplicationException(ErrorCode.NOT_FOUND, "존재하지 않는 리소스입니다.");
+            throw new ApplicationException(ErrorCode.NOT_FOUND, ErrorCode.NOT_FOUND.getMessage());
         }
         Set<Long> likes = LikeData.LIKES.get(postId);
         likes.remove(memberId);

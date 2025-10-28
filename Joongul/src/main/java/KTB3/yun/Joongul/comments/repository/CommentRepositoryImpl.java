@@ -33,7 +33,7 @@ public class CommentRepositoryImpl implements CommentRepository {
     public List<CommentResponseDto> getAllComments(Long postId) {
         Optional<Post> post = Optional.ofNullable(PostData.POSTS.get(postId));
         if (post.isEmpty()) {
-            throw new ApplicationException(ErrorCode.NOT_FOUND, "존재하지 않는 리소스입니다.");
+            throw new ApplicationException(ErrorCode.NOT_FOUND, ErrorCode.NOT_FOUND.getMessage());
         }
         List<Long> commentIds = CommentData.COMMENT_IDS_IN_POST.get(postId);
 
@@ -48,7 +48,7 @@ public class CommentRepositoryImpl implements CommentRepository {
     synchronized public CommentResponseDto writeComment(Long postId, CommentWriteRequestDto dto, Long memberId) {
         Optional<Post> post = Optional.ofNullable(PostData.POSTS.get(postId));
         if (post.isEmpty()) {
-            throw new ApplicationException(ErrorCode.NOT_FOUND, "존재하지 않는 리소스입니다.");
+            throw new ApplicationException(ErrorCode.NOT_FOUND, ErrorCode.NOT_FOUND.getMessage());
         }
         CommentData.COMMENTS.put(commentSequence, new Comment(memberId, postId,
                 commentSequence, memberRepository.getMemberInfo(memberId).getNickname(), dto.getContent(),
@@ -63,7 +63,7 @@ public class CommentRepositoryImpl implements CommentRepository {
     public CommentResponseDto updateComment(Long postId, Long commentId, CommentUpdateRequestDto dto, Long memberId) {
         Optional<Post> post = Optional.ofNullable(PostData.POSTS.get(postId));
         if (post.isEmpty()) {
-            throw new ApplicationException(ErrorCode.NOT_FOUND, "존재하지 않는 리소스입니다.");
+            throw new ApplicationException(ErrorCode.NOT_FOUND, ErrorCode.NOT_FOUND.getMessage());
         }
         Comment oldComment = CommentData.COMMENTS.get(commentId);
         CommentData.COMMENTS.put(commentId, new Comment(memberId, oldComment.getPostId(),
@@ -76,10 +76,10 @@ public class CommentRepositoryImpl implements CommentRepository {
     public void deleteComment(Long commentId, Long postId) {
         Optional<Post> post = Optional.ofNullable(PostData.POSTS.get(postId));
         if (post.isEmpty()) {
-            throw new ApplicationException(ErrorCode.NOT_FOUND, "존재하지 않는 리소스입니다.");
+            throw new ApplicationException(ErrorCode.NOT_FOUND, ErrorCode.NOT_FOUND.getMessage());
         }
         if (CommentData.COMMENTS.get(commentId) == null) {
-            throw new ApplicationException(ErrorCode.NOT_FOUND, "존재하지 않는 리소스입니다.");
+            throw new ApplicationException(ErrorCode.NOT_FOUND, ErrorCode.NOT_FOUND.getMessage());
         }
         CommentData.COMMENTS.remove(commentId);
         CommentData.COMMENT_IDS_IN_POST.get(postId).remove(commentId);

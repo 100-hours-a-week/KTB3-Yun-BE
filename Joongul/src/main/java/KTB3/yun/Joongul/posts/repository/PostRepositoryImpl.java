@@ -37,7 +37,7 @@ public class PostRepositoryImpl implements PostRepository {
     public PostDetailResponseDto findById(Long postId) {
         Optional<Post> post = Optional.ofNullable(PostData.POSTS.get(postId));
         if (post.isEmpty()) {
-            throw new ApplicationException(ErrorCode.NOT_FOUND, "존재하지 않는 리소스입니다.");
+            throw new ApplicationException(ErrorCode.NOT_FOUND, ErrorCode.NOT_FOUND.getMessage());
         }
         Post postData = post.get();
         postData.setViews(post.get().getViews()+1);
