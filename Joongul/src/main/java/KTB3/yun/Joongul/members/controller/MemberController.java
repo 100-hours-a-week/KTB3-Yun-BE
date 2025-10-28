@@ -1,8 +1,7 @@
 package KTB3.yun.Joongul.members.controller;
 
+import KTB3.yun.Joongul.common.auth.AuthService;
 import KTB3.yun.Joongul.common.dto.ApiResponseDto;
-import KTB3.yun.Joongul.common.exceptions.ApplicationException;
-import KTB3.yun.Joongul.common.exceptions.ErrorCode;
 import KTB3.yun.Joongul.members.dto.*;
 import KTB3.yun.Joongul.members.service.MemberService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -20,10 +19,11 @@ import org.springframework.web.bind.annotation.*;
 public class MemberController {
 
     private final MemberService memberService;
-    private final static String USER_ID = "USER_ID";
+    private final AuthService authService;
 
-    public MemberController(MemberService memberService) {
+    public MemberController(MemberService memberService, AuthService authService) {
         this.memberService = memberService;
+        this.authService = authService;
     }
 
 
@@ -39,17 +39,9 @@ public class MemberController {
     public ResponseEntity<ApiResponseDto<MemberInfoResponseDto>> getMemberInfo(@PathVariable(name = "id") Long memberId,
                                                                                HttpServletRequest request) {
 
-        //401, 403 예외 처리하는 부분이 계속 반복되는데 어떻게 분리하면 좋을지 고민입니다.
-        HttpSession session = request.getSession(false);
-        if (session == null) {
-            throw new ApplicationException(ErrorCode.UNAUTHORIZED_REQUEST, ErrorCode.UNAUTHORIZED_REQUEST.getMessage());
-        }
-
-        Long loginId = (Long) session.getAttribute(USER_ID);
-        if (!loginId.equals(memberId)) {
-            throw new ApplicationException(ErrorCode.FORBIDDEN_REQUEST, ErrorCode.FORBIDDEN_REQUEST.getMessage());
-        }
-        MemberInfoResponseDto info = memberService.getMemberInfo(loginId);
+        authService.checkLoginUser(request);
+        authService.checkAuthority(request, memberId);
+        MemberInfoResponseDto info = memberService.getMemberInfo(memberId);
         return ResponseEntity.ok().body(new ApiResponseDto<>("get_user_info_success", info));
     }
 
@@ -58,16 +50,9 @@ public class MemberController {
     public ResponseEntity<String> updateMemberInfo(@PathVariable(name = "id") Long memberId,
                                                    @RequestBody @Valid MemberInfoUpdateRequestDto memberInfoUpdateRequestDto,
                                                    HttpServletRequest request) {
-        HttpSession session = request.getSession(false);
-        if (session == null) {
-            throw new ApplicationException(ErrorCode.UNAUTHORIZED_REQUEST, ErrorCode.UNAUTHORIZED_REQUEST.getMessage());
-        }
-
-        Long loginId = (Long) session.getAttribute(USER_ID);
-        if (!loginId.equals(memberId)) {
-            throw new ApplicationException(ErrorCode.FORBIDDEN_REQUEST, ErrorCode.FORBIDDEN_REQUEST.getMessage());
-        }
-        memberService.updateMemberInfo(memberInfoUpdateRequestDto, loginId);
+        authService.checkLoginUser(request);
+        authService.checkAuthority(request, memberId);
+        memberService.updateMemberInfo(memberInfoUpdateRequestDto, memberId);
         return ResponseEntity.ok().body("user_info_change_success");
     }
 
@@ -76,16 +61,9 @@ public class MemberController {
     public ResponseEntity<String> modifyPassword(@PathVariable(name = "id") Long memberId,
                                                  @RequestBody @Valid PasswordUpdateRequestDto passwordUpdateRequestDto,
                                                  HttpServletRequest request) {
-        HttpSession session = request.getSession(false);
-        if (session == null) {
-            throw new ApplicationException(ErrorCode.UNAUTHORIZED_REQUEST, ErrorCode.UNAUTHORIZED_REQUEST.getMessage());
-        }
-
-        Long loginId = (Long) session.getAttribute(USER_ID);
-        if (!loginId.equals(memberId)) {
-            throw new ApplicationException(ErrorCode.FORBIDDEN_REQUEST, ErrorCode.FORBIDDEN_REQUEST.getMessage());
-        }
-        memberService.modifyPassword(passwordUpdateRequestDto, loginId);
+        authService.checkLoginUser(request);
+        authService.checkAuthority(request, memberId);
+        memberService.modifyPassword(passwordUpdateRequestDto, memberId);
         return ResponseEntity.ok().body("password_change_success");
     }
 
@@ -93,16 +71,9 @@ public class MemberController {
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> withdrawMember(@PathVariable(name = "id") Long memberId,
                                                HttpServletRequest request) {
-        HttpSession session = request.getSession(false);
-        if (session == null) {
-            throw new ApplicationException(ErrorCode.UNAUTHORIZED_REQUEST, ErrorCode.UNAUTHORIZED_REQUEST.getMessage());
-        }
-
-        Long loginId = (Long) session.getAttribute(USER_ID);
-        if (!loginId.equals(memberId)) {
-            throw new ApplicationException(ErrorCode.FORBIDDEN_REQUEST, ErrorCode.FORBIDDEN_REQUEST.getMessage());
-        }
-        memberService.withdraw(loginId);
+        authService.checkLoginUser(request);
+        authService.checkAuthority(request, memberId);
+        memberService.withdraw(memberId);
         return ResponseEntity.noContent().build();
     }
 

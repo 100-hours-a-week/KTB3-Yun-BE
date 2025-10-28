@@ -1,12 +1,10 @@
 package KTB3.yun.Joongul.likes.controller;
 
-import KTB3.yun.Joongul.common.exceptions.ApplicationException;
-import KTB3.yun.Joongul.common.exceptions.ErrorCode;
+import KTB3.yun.Joongul.common.auth.AuthService;
 import KTB3.yun.Joongul.likes.service.LikeService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpSession;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -15,20 +13,18 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/posts/{id}/likes")
 public class LikeController {
     private final LikeService likeService;
-    private final static String USER_ID = "USER_ID";
+    private final AuthService authService;
 
-    public LikeController(LikeService likeService) {
+    public LikeController(LikeService likeService, AuthService authService) {
         this.likeService = likeService;
+        this.authService = authService;
     }
 
     @Operation(summary = "좋아요 추가 API")
     @PutMapping
     public ResponseEntity<Void> like(@PathVariable(name = "id") Long postId, HttpServletRequest request) {
-        HttpSession session = request.getSession(false);
-        if (session == null) {
-            throw new ApplicationException(ErrorCode.UNAUTHORIZED_REQUEST, ErrorCode.UNAUTHORIZED_REQUEST.getMessage());
-        }
-        Long memberId = (Long) session.getAttribute(USER_ID);
+        authService.checkLoginUser(request);
+        Long memberId = authService.getMemberId(request);
         likeService.toggleLike(postId, memberId);
         return ResponseEntity.noContent().build();
     }
@@ -36,11 +32,8 @@ public class LikeController {
     @Operation(summary = "좋아요 취소 API")
     @DeleteMapping
     public ResponseEntity<Void> unlike(@PathVariable(name = "id") Long postId, HttpServletRequest request) {
-        HttpSession session = request.getSession(false);
-        if (session == null) {
-            throw new ApplicationException(ErrorCode.UNAUTHORIZED_REQUEST, ErrorCode.UNAUTHORIZED_REQUEST.getMessage());
-        }
-        Long memberId = (Long) session.getAttribute(USER_ID);
+        authService.checkLoginUser(request);
+        Long memberId = authService.getMemberId(request);
         likeService.untoggleLike(postId, memberId);
         return ResponseEntity.noContent().build();
     }

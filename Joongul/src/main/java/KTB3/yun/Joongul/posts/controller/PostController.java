@@ -1,8 +1,7 @@
 package KTB3.yun.Joongul.posts.controller;
 
+import KTB3.yun.Joongul.common.auth.AuthService;
 import KTB3.yun.Joongul.common.dto.ApiResponseDto;
-import KTB3.yun.Joongul.common.exceptions.ApplicationException;
-import KTB3.yun.Joongul.common.exceptions.ErrorCode;
 import KTB3.yun.Joongul.posts.dto.PostDetailResponseDto;
 import KTB3.yun.Joongul.posts.dto.PostSimpleResponseDto;
 import KTB3.yun.Joongul.posts.dto.PostUpdateRequestDto;
@@ -11,7 +10,6 @@ import KTB3.yun.Joongul.posts.service.PostService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -24,19 +22,17 @@ import java.util.List;
 @RequestMapping("/posts")
 public class PostController {
     private final PostService postService;
-    private final static String USER_ID = "USER_ID";
+    private final AuthService authService;
 
-    public PostController(PostService postService) {
+    public PostController(PostService postService, AuthService authService) {
         this.postService = postService;
+        this.authService = authService;
     }
 
     @Operation(summary = "게시글 목록 조회 API")
     @GetMapping
     public ResponseEntity<ApiResponseDto<List<PostSimpleResponseDto>>> getPostList(HttpServletRequest request) {
-        HttpSession session = request.getSession(false);
-        if (session == null) {
-            throw new ApplicationException(ErrorCode.UNAUTHORIZED_REQUEST, ErrorCode.UNAUTHORIZED_REQUEST.getMessage());
-        }
+        authService.checkLoginUser(request);
         List<PostSimpleResponseDto> postsList = postService.getAllPosts();
         return ResponseEntity.status(HttpStatus.OK).body(new ApiResponseDto<>("posts_list_success", postsList));
     }
@@ -45,10 +41,7 @@ public class PostController {
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponseDto<PostDetailResponseDto>> getPostDetail(@PathVariable(name = "id") Long postId,
                                                                HttpServletRequest request) {
-        HttpSession session = request.getSession(false);
-        if (session == null) {
-            throw new ApplicationException(ErrorCode.UNAUTHORIZED_REQUEST, ErrorCode.UNAUTHORIZED_REQUEST.getMessage());
-        }
+        authService.checkLoginUser(request);
         PostDetailResponseDto post = postService.getDetailPost(postId);
         return ResponseEntity.status(HttpStatus.OK).body(new ApiResponseDto<>("post_detail_success", post));
     }
@@ -57,11 +50,8 @@ public class PostController {
     @PostMapping
     public ResponseEntity<ApiResponseDto<PostDetailResponseDto>> savePost(@RequestBody @Valid PostWriteRequestDto postWriteRequestDto,
                                                           HttpServletRequest request) {
-        HttpSession session = request.getSession(false);
-        if (session == null) {
-            throw new ApplicationException(ErrorCode.UNAUTHORIZED_REQUEST, ErrorCode.UNAUTHORIZED_REQUEST.getMessage());
-        }
-        Long loginId = (Long) session.getAttribute(USER_ID);
+        authService.checkLoginUser(request);
+        Long loginId = authService.getMemberId(request);
         PostDetailResponseDto savedPost = postService.savePost(postWriteRequestDto, loginId);
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(new ApiResponseDto<>("post_write_success", savedPost));
@@ -72,16 +62,10 @@ public class PostController {
     public ResponseEntity<ApiResponseDto<PostDetailResponseDto>> updatePost(@PathVariable(name = "id") Long postId,
                                                                             @RequestBody @Valid PostUpdateRequestDto postUpdateRequestDto,
                                                                             HttpServletRequest request) {
-        HttpSession session = request.getSession(false);
-        if (session == null) {
-            throw new ApplicationException(ErrorCode.UNAUTHORIZED_REQUEST, ErrorCode.UNAUTHORIZED_REQUEST.getMessage());
-        }
-        Long loginId = (Long) session.getAttribute(USER_ID);
+        authService.checkLoginUser(request);
         Long postMemberId = postService.getMemberId(postId);
-        if (!loginId.equals(postMemberId)) {
-            throw new ApplicationException(ErrorCode.FORBIDDEN_REQUEST, ErrorCode.FORBIDDEN_REQUEST.getMessage());
-        }
-        PostDetailResponseDto updatedPost = postService.updatePost(postId, postUpdateRequestDto, loginId);
+        authService.checkAuthority(request, postMemberId);
+        PostDetailResponseDto updatedPost = postService.updatePost(postId, postUpdateRequestDto, postMemberId);
         return ResponseEntity.status(HttpStatus.OK)
                 .body(new ApiResponseDto<>("post_update_success", updatedPost));
     }
@@ -89,15 +73,9 @@ public class PostController {
     @Operation(summary = "게시글 삭제 API")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deletePost(@PathVariable(name = "id") Long postId, HttpServletRequest request) {
-        HttpSession session = request.getSession(false);
-        if (session == null) {
-            throw new ApplicationException(ErrorCode.UNAUTHORIZED_REQUEST, ErrorCode.UNAUTHORIZED_REQUEST.getMessage());
-        }
-        Long loginId = (Long) session.getAttribute(USER_ID);
+        authService.checkLoginUser(request);
         Long postMemberId = postService.getMemberId(postId);
-        if (!loginId.equals(postMemberId)) {
-            throw new ApplicationException(ErrorCode.FORBIDDEN_REQUEST, ErrorCode.FORBIDDEN_REQUEST.getMessage());
-        }
+        authService.checkAuthority(request, postMemberId);
         postService.deletePost(postId);
         return ResponseEntity.noContent().build();
     }

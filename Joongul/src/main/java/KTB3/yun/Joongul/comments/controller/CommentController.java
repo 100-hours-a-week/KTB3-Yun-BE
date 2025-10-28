@@ -4,13 +4,11 @@ import KTB3.yun.Joongul.comments.dto.CommentResponseDto;
 import KTB3.yun.Joongul.comments.dto.CommentUpdateRequestDto;
 import KTB3.yun.Joongul.comments.dto.CommentWriteRequestDto;
 import KTB3.yun.Joongul.comments.service.CommentService;
+import KTB3.yun.Joongul.common.auth.AuthService;
 import KTB3.yun.Joongul.common.dto.ApiResponseDto;
-import KTB3.yun.Joongul.common.exceptions.ApplicationException;
-import KTB3.yun.Joongul.common.exceptions.ErrorCode;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpSession;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -20,11 +18,11 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/posts/{postId}/comments")
 public class CommentController {
     private final CommentService commentService;
-    private final static String USER_ID = "USER_ID";
+    private final AuthService authService;
 
-
-    public CommentController(CommentService commentService) {
+    public CommentController(CommentService commentService, AuthService authService) {
         this.commentService = commentService;
+        this.authService = authService;
     }
 
     @Operation(summary = "댓글 작성 API")
@@ -32,11 +30,8 @@ public class CommentController {
     public ResponseEntity<ApiResponseDto<CommentResponseDto>> writeComment(@PathVariable(name = "postId") Long postId,
                                                                            @RequestBody CommentWriteRequestDto dto,
                                                                            HttpServletRequest request) {
-        HttpSession session = request.getSession(false);
-        if (session == null) {
-            throw new ApplicationException(ErrorCode.UNAUTHORIZED_REQUEST, ErrorCode.UNAUTHORIZED_REQUEST.getMessage());
-        }
-        Long memberId = (Long) session.getAttribute(USER_ID);
+        authService.checkLoginUser(request);
+        Long memberId = authService.getMemberId(request);
         CommentResponseDto comment = commentService.writeComment(postId, dto, memberId);
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(new ApiResponseDto<>("comment_write_success", comment));
@@ -48,14 +43,9 @@ public class CommentController {
                                                                             @PathVariable(name = "commentId") Long commentId,
                                                                             @RequestBody CommentUpdateRequestDto dto,
                                                                             HttpServletRequest request) {
-        HttpSession session = request.getSession(false);
-        if (session == null) {
-            throw new ApplicationException(ErrorCode.UNAUTHORIZED_REQUEST, ErrorCode.UNAUTHORIZED_REQUEST.getMessage());
-        }
-        Long memberId = (Long) session.getAttribute(USER_ID);
-        if (!commentService.isValidMember(commentId, memberId)) {
-            throw new ApplicationException(ErrorCode.FORBIDDEN_REQUEST, ErrorCode.FORBIDDEN_REQUEST.getMessage());
-        }
+        authService.checkLoginUser(request);
+        Long memberId = commentService.getMemberId(commentId);
+        authService.checkAuthority(request, memberId);
         CommentResponseDto comment = commentService.updateComment(postId, commentId, dto, memberId);
         return ResponseEntity.status(HttpStatus.OK).body(new ApiResponseDto<>("comment_update_success", comment));
     }
@@ -65,14 +55,9 @@ public class CommentController {
     public ResponseEntity<Void> deleteComment(@PathVariable(name = "postId") Long postId,
                                               @PathVariable(name = "commentId") Long commentId,
                                               HttpServletRequest request) {
-        HttpSession session = request.getSession(false);
-        if (session == null) {
-            throw new ApplicationException(ErrorCode.UNAUTHORIZED_REQUEST, ErrorCode.UNAUTHORIZED_REQUEST.getMessage());
-        }
-        Long memberId = (Long) session.getAttribute(USER_ID);
-        if (!commentService.isValidMember(commentId, memberId)) {
-            throw new ApplicationException(ErrorCode.FORBIDDEN_REQUEST, ErrorCode.FORBIDDEN_REQUEST.getMessage());
-        }
+        authService.checkLoginUser(request);
+        Long memberId = commentService.getMemberId(commentId);
+        authService.checkAuthority(request, memberId);
         commentService.deleteComment(commentId, postId);
         return ResponseEntity.noContent().build();
     }

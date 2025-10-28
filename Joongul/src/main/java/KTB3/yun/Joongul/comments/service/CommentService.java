@@ -41,7 +41,7 @@ public class CommentService {
         PostData.POSTS.get(postId).setComments(CommentData.COMMENT_IDS_IN_POST.get(postId).size());
     }
 
-    public boolean isValidMember(Long commentId, Long memberId) {
-        return memberId.equals(commentRepository.findMemberIdByCommentId(commentId));
+    public Long getMemberId(Long commentId) {
+        return commentRepository.findMemberIdByCommentId(commentId);
     }
 }
