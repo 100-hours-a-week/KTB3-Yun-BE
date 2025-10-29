@@ -1,32 +1,22 @@
-package KTB3.yun.Joongul.comments.domain;
+package KTB3.yun.Joongul.likes.domain;
 
 import KTB3.yun.Joongul.members.domain.Member;
 import KTB3.yun.Joongul.posts.domain.Post;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-
-import java.time.LocalDateTime;
 
 @Getter
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-@Builder
-public class Comment {
+public class Like {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "comment_id")
-    private Long commentId;
-
-    private String nickname;
-    private String content;
-
-    @Column(name = "created_at")
-    private LocalDateTime createdAt;
+    @Column(name = "like_id")
+    private Long likeId;
 
     @ManyToOne
     @JoinColumn(name = "member_id")

@@ -14,6 +14,6 @@ public class CommentResponseDto {
 
     public static CommentResponseDto from(Comment comment) {
         return new CommentResponseDto(comment.getCommentId(), comment.getNickname(),
-                comment.getContent(), comment.getCreatedAt());
+                comment.getContent(), comment.getCreatedAt().toString());
     }
 }

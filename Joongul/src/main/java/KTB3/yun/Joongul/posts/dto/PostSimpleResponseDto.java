@@ -17,6 +17,6 @@ public class PostSimpleResponseDto {
 
     public static PostSimpleResponseDto from(Post post){
         return new PostSimpleResponseDto(post.getPostId(), post.getTitle(), post.getNickname(),
-                post.getLikes(), post.getComments(), post.getViews(), post.getCreatedAt());
+                post.getLikes(), post.getComments(), post.getViews(), post.getCreatedAt().toString());
     }
 }

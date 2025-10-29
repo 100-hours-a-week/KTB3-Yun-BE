@@ -26,7 +26,7 @@ public class PostService {
 
     public PostDetailResponseDto getDetailPost(Long postId) {
         PostDetailResponseDto post = postRepository.findById(postId);
-        post.setCommentsList(commentService.getComments(postId));
+//        post.setCommentsList(commentService.getComments(postId));
         return post;
     }
 

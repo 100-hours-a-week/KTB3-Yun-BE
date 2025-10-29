@@ -12,13 +12,9 @@ import KTB3.yun.Joongul.posts.domain.Post;
 import KTB3.yun.Joongul.posts.domain.PostData;
 import org.springframework.stereotype.Repository;
 
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-
-import static KTB3.yun.Joongul.comments.domain.CommentData.commentSequence;
 
 @Repository
 public class CommentRepositoryImpl implements CommentRepository {
@@ -50,12 +46,13 @@ public class CommentRepositoryImpl implements CommentRepository {
         if (post.isEmpty()) {
             throw new ApplicationException(ErrorCode.NOT_FOUND, ErrorCode.NOT_FOUND.getMessage());
         }
-        CommentData.COMMENTS.put(commentSequence, new Comment(memberId, postId,
-                commentSequence, memberRepository.getMemberInfo(memberId).getNickname(), dto.getContent(),
-                LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))));
-        CommentData.COMMENT_IDS_IN_POST.get(postId).add(commentSequence);
-        Comment comment = CommentData.COMMENTS.get(commentSequence);
-        commentSequence++;
+//        CommentData.COMMENTS.put(commentSequence, new Comment(memberId, postId,
+//                commentSequence, memberRepository.getMemberInfo(memberId).getNickname(), dto.getContent(),
+//                LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))));
+//        CommentData.COMMENT_IDS_IN_POST.get(postId).add(commentSequence);
+//        Comment comment = CommentData.COMMENTS.get(commentSequence);
+//        commentSequence++;
+        Comment comment = new Comment();
         return CommentResponseDto.from(comment);
     }
 
@@ -65,10 +62,11 @@ public class CommentRepositoryImpl implements CommentRepository {
         if (post.isEmpty()) {
             throw new ApplicationException(ErrorCode.NOT_FOUND, ErrorCode.NOT_FOUND.getMessage());
         }
-        Comment oldComment = CommentData.COMMENTS.get(commentId);
-        CommentData.COMMENTS.put(commentId, new Comment(memberId, oldComment.getPostId(),
-                commentId, oldComment.getNickname(), dto.getContent(), oldComment.getCreatedAt()));
-        Comment updatedComment = CommentData.COMMENTS.get(commentId);
+//        Comment oldComment = CommentData.COMMENTS.get(commentId);
+//        CommentData.COMMENTS.put(commentId, new Comment(memberId, oldComment.getPostId(),
+//                commentId, oldComment.getNickname(), dto.getContent(), oldComment.getCreatedAt()));
+//        Comment updatedComment = CommentData.COMMENTS.get(commentId);
+        Comment updatedComment = new Comment();
         return CommentResponseDto.from(updatedComment);
     }
 
@@ -87,6 +85,6 @@ public class CommentRepositoryImpl implements CommentRepository {
 
     @Override
     public Long findMemberIdByCommentId(Long commentId) {
-        return CommentData.COMMENTS.get(commentId).getMemberId();
+        return 1L;
     }
 }

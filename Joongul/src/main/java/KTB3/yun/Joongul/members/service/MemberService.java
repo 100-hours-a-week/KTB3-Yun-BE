@@ -7,8 +7,7 @@ import KTB3.yun.Joongul.members.dto.*;
 import KTB3.yun.Joongul.members.repository.MemberRepository;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
-
-import static KTB3.yun.Joongul.members.domain.MemberData.memberSequence;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class MemberService {
@@ -43,22 +42,27 @@ public class MemberService {
         }
 
         String encodedPassword = passwordEncoder.encode(signupRequestDto.getPassword());
-        Member member = new Member(memberSequence, signupRequestDto.getEmail(), encodedPassword,
-                signupRequestDto.getNickname(), signupRequestDto.getProfileImage());
-        memberRepository.addMember(member);
+
+        Member member = Member.builder()
+                .email(signupRequestDto.getEmail())
+                .password(encodedPassword)
+                .nickname(signupRequestDto.getNickname())
+                .profileImage(signupRequestDto.getProfileImage())
+                .build();
+        memberRepository.save(member);
     }
 
     public MemberInfoResponseDto getMemberInfo(Long memberId) {
-        Member member = memberRepository.getMemberInfo(memberId);
-        if (member == null) {
-            throw new ApplicationException(ErrorCode.NOT_FOUND, ErrorCode.NOT_FOUND.getMessage());
-        }
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new ApplicationException(ErrorCode.NOT_FOUND, ErrorCode.NOT_FOUND.getMessage()));
+
         return new MemberInfoResponseDto(member.getMemberId(),
                 member.getEmail(),
                 member.getNickname(),
                 member.getProfileImage());
     }
 
+    @Transactional
     public void updateMemberInfo(MemberInfoUpdateRequestDto dto, Long memberId) {
         isExistNickname = memberRepository.existsByNickname(dto.getNickname());
 
@@ -66,9 +70,13 @@ public class MemberService {
             throw new ApplicationException(ErrorCode.DUPLICATE_NICKNAME, ErrorCode.DUPLICATE_NICKNAME.getMessage());
         }
 
-        memberRepository.updateMemberInfo(dto.getNickname(), dto.getProfileImage(), memberId);
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new ApplicationException(ErrorCode.NOT_FOUND, ErrorCode.NOT_FOUND.getMessage()));
+
+        member.updateMemberInfo(dto.getNickname(), dto.getProfileImage());
     }
 
+    @Transactional
     public void modifyPassword(PasswordUpdateRequestDto passwordUpdateRequestDto, Long memberId) {
         isUsedPassword = isValidPassword(memberId, passwordUpdateRequestDto.getPassword());
         isSameWithConfirmPassword = passwordUpdateRequestDto.getPassword().equals(passwordUpdateRequestDto.getConfirmPassword());
@@ -80,17 +88,23 @@ public class MemberService {
         }
 
         String newEncodedPassword = passwordEncoder.encode(passwordUpdateRequestDto.getPassword());
-        memberRepository.modifyPassword(newEncodedPassword, memberId);
+
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new ApplicationException(ErrorCode.NOT_FOUND, ErrorCode.NOT_FOUND.getMessage()));
+
+        member.modifyPassword(newEncodedPassword);
     }
 
     public void withdraw(Long memberId) {
-        memberRepository.deleteMember(memberId);
+        memberRepository.deleteById(memberId);
     }
 
     //일단 Service 쪽에서 이메일/비밀번호 검증을 해서 틀리면 예외를 던지게끔 했는데 이 구조가 맞는지 모르겠습니다...
     public boolean isCorrectMember(LoginRequestDto loginRequestDto) {
-        Long memberId = memberRepository.findIdByEmail(loginRequestDto.getEmail());
-        isCorrectEmail = memberRepository.getMemberInfo(memberId).getEmail().equals(loginRequestDto.getEmail());
+        Long memberId = findIdByEmail(loginRequestDto.getEmail());
+        isCorrectEmail = memberRepository.findById(memberId)
+                .orElseThrow(() -> new ApplicationException(ErrorCode.NOT_FOUND, ErrorCode.NOT_FOUND.getMessage()))
+                .getEmail().equals(loginRequestDto.getEmail());
         isCorrectPassword = isValidPassword(memberId, loginRequestDto.getPassword());
 
         if (!isCorrectEmail || !isCorrectPassword) {
@@ -102,11 +116,14 @@ public class MemberService {
     }
 
     public Long findIdByEmail(String email) {
-        return memberRepository.findIdByEmail(email);
+        return memberRepository.findByEmail(email).orElseThrow(() -> new ApplicationException(ErrorCode.NOT_FOUND, ErrorCode.NOT_FOUND.getMessage()))
+                .getMemberId();
     }
 
     public boolean isValidPassword(Long memberId, String password) {
-        String savedPassword = memberRepository.getMemberInfo(memberId).getPassword();
+        String savedPassword = memberRepository.findById(memberId)
+                .orElseThrow(() -> new ApplicationException(ErrorCode.NOT_FOUND, ErrorCode.NOT_FOUND.getMessage()))
+                .getPassword();
         return passwordEncoder.matches(password, savedPassword);
     }
 }

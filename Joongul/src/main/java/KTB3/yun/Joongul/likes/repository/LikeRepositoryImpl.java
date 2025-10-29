@@ -18,7 +18,7 @@ public class LikeRepositoryImpl implements LikeRepository {
             throw new ApplicationException(ErrorCode.NOT_FOUND, ErrorCode.NOT_FOUND.getMessage());
         }
         LikeData.LIKES.computeIfAbsent(postId, k -> new HashSet<>()).add(memberId);
-        PostData.POSTS.get(postId).setLikes(LikeData.LIKES.get(postId).size());
+//        PostData.POSTS.get(postId).setLikes(LikeData.LIKES.get(postId).size());
     }
 
     @Override
@@ -28,6 +28,6 @@ public class LikeRepositoryImpl implements LikeRepository {
         }
         Set<Long> likes = LikeData.LIKES.get(postId);
         likes.remove(memberId);
-        PostData.POSTS.get(postId).setLikes(LikeData.LIKES.get(postId).size());
+//        PostData.POSTS.get(postId).setLikes(LikeData.LIKES.get(postId).size());
     }
 }

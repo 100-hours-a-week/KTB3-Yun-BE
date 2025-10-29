@@ -1,9 +1,5 @@
 package KTB3.yun.Joongul.comments.domain;
 
-import KTB3.yun.Joongul.members.domain.MemberData;
-
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -17,16 +13,11 @@ public class CommentData {
     public static Long commentSequence = 6L;
 
     static {
-        COMMENTS.put(1L, new Comment(1L, 1L, 1L, MemberData.MEMBERS.get(1L).getNickname(),
-                "테스트 댓글 1", LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))));
-        COMMENTS.put(2L, new Comment(1L, 1L, 2L, MemberData.MEMBERS.get(1L).getNickname(),
-                "테스트 댓글 2", LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))));
-        COMMENTS.put(3L, new Comment(2L, 1L, 3L, MemberData.MEMBERS.get(2L).getNickname(),
-                "테스트 댓글 3", LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))));
-        COMMENTS.put(4L, new Comment(1L, 2L, 4L, MemberData.MEMBERS.get(1L).getNickname(),
-                "테스트 댓글 4", LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))));
-        COMMENTS.put(5L, new Comment(2L, 2L, 5L, MemberData.MEMBERS.get(2L).getNickname(),
-                "테스트 댓글 5", LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))));
+        COMMENTS.put(1L, new Comment());
+        COMMENTS.put(2L, new Comment());
+        COMMENTS.put(3L, new Comment());
+        COMMENTS.put(4L, new Comment());
+        COMMENTS.put(5L, new Comment());
 
         COMMENT_IDS_IN_POST.put(1L, new ArrayList<>(List.of(1L, 2L, 3L)));
         COMMENT_IDS_IN_POST.put(2L, new ArrayList<>(List.of(4L, 5L)));

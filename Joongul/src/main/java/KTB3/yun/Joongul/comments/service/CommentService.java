@@ -1,11 +1,9 @@
 package KTB3.yun.Joongul.comments.service;
 
-import KTB3.yun.Joongul.comments.domain.CommentData;
 import KTB3.yun.Joongul.comments.dto.CommentResponseDto;
 import KTB3.yun.Joongul.comments.dto.CommentUpdateRequestDto;
 import KTB3.yun.Joongul.comments.dto.CommentWriteRequestDto;
 import KTB3.yun.Joongul.comments.repository.CommentRepository;
-import KTB3.yun.Joongul.posts.domain.PostData;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -28,7 +26,7 @@ public class CommentService {
 
     public CommentResponseDto writeComment(Long postId, CommentWriteRequestDto dto, Long memberId) {
         CommentResponseDto comment = commentRepository.writeComment(postId, dto, memberId);
-        PostData.POSTS.get(postId).setComments(CommentData.COMMENT_IDS_IN_POST.get(postId).size());
+//        PostData.POSTS.get(postId).setComments(CommentData.COMMENT_IDS_IN_POST.get(postId).size());
         return comment;
     }
 
@@ -38,7 +36,7 @@ public class CommentService {
 
     public void deleteComment(Long commentId, Long postId) {
         commentRepository.deleteComment(commentId, postId);
-        PostData.POSTS.get(postId).setComments(CommentData.COMMENT_IDS_IN_POST.get(postId).size());
+//        PostData.POSTS.get(postId).setComments(CommentData.COMMENT_IDS_IN_POST.get(postId).size());
     }
 
     public Long getMemberId(Long commentId) {
