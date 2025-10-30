@@ -21,7 +21,7 @@ public class LikeController {
     }
 
     @Operation(summary = "좋아요 추가 API")
-    @PutMapping
+    @PostMapping
     public ResponseEntity<Void> like(@PathVariable(name = "id") Long postId, HttpServletRequest request) {
         authService.checkLoginUser(request);
         Long memberId = authService.getMemberId(request);
