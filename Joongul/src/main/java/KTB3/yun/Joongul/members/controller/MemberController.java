@@ -74,6 +74,10 @@ public class MemberController {
         authService.checkLoginUser(request);
         authService.checkAuthority(request, memberId);
         memberService.withdraw(memberId);
+
+        HttpSession session = request.getSession(false);
+        session.invalidate();
+
         return ResponseEntity.noContent().build();
     }
 

@@ -51,8 +51,8 @@ public class PostController {
     public ResponseEntity<ApiResponseDto<PostDetailResponseDto>> savePost(@RequestBody @Valid PostWriteRequestDto postWriteRequestDto,
                                                           HttpServletRequest request) {
         authService.checkLoginUser(request);
-        Long loginId = authService.getMemberId(request);
-        PostDetailResponseDto savedPost = postService.savePost(postWriteRequestDto, loginId);
+        Long memberId = authService.getMemberId(request);
+        PostDetailResponseDto savedPost = postService.savePost(postWriteRequestDto, memberId);
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(new ApiResponseDto<>("post_write_success", savedPost));
     }

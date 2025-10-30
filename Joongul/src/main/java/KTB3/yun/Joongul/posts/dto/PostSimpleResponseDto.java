@@ -4,6 +4,8 @@ import KTB3.yun.Joongul.posts.domain.Post;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
+import java.time.format.DateTimeFormatter;
+
 @Getter
 @AllArgsConstructor
 public class PostSimpleResponseDto {
@@ -17,6 +19,7 @@ public class PostSimpleResponseDto {
 
     public static PostSimpleResponseDto from(Post post){
         return new PostSimpleResponseDto(post.getPostId(), post.getTitle(), post.getNickname(),
-                post.getLikes(), post.getComments(), post.getViews(), post.getCreatedAt().toString());
+                post.getLikes(), post.getComments(), post.getViews(),
+                post.getCreatedAt().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
     }
 }

@@ -48,6 +48,7 @@ public class MemberService {
                 .password(encodedPassword)
                 .nickname(signupRequestDto.getNickname())
                 .profileImage(signupRequestDto.getProfileImage())
+                .isDeleted(Boolean.FALSE)
                 .build();
         memberRepository.save(member);
     }
@@ -55,6 +56,10 @@ public class MemberService {
     public MemberInfoResponseDto getMemberInfo(Long memberId) {
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new ApplicationException(ErrorCode.NOT_FOUND, ErrorCode.NOT_FOUND.getMessage()));
+
+        if (member.getIsDeleted()) {
+            throw new ApplicationException(ErrorCode.NOT_FOUND, ErrorCode.NOT_FOUND.getMessage());
+        }
 
         return new MemberInfoResponseDto(member.getMemberId(),
                 member.getEmail(),
@@ -95,16 +100,24 @@ public class MemberService {
         member.modifyPassword(newEncodedPassword);
     }
 
+    @Transactional
     public void withdraw(Long memberId) {
-        memberRepository.deleteById(memberId);
+        memberRepository.findById(memberId)
+                .orElseThrow(() -> new ApplicationException(ErrorCode.NOT_FOUND, ErrorCode.NOT_FOUND.getMessage())).deleteMember();
     }
 
     //일단 Service 쪽에서 이메일/비밀번호 검증을 해서 틀리면 예외를 던지게끔 했는데 이 구조가 맞는지 모르겠습니다...
     public boolean isCorrectMember(LoginRequestDto loginRequestDto) {
         Long memberId = findIdByEmail(loginRequestDto.getEmail());
-        isCorrectEmail = memberRepository.findById(memberId)
-                .orElseThrow(() -> new ApplicationException(ErrorCode.NOT_FOUND, ErrorCode.NOT_FOUND.getMessage()))
-                .getEmail().equals(loginRequestDto.getEmail());
+
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new ApplicationException(ErrorCode.NOT_FOUND, ErrorCode.NOT_FOUND.getMessage()));
+
+        if (Boolean.TRUE.equals(member.getIsDeleted())) {
+            throw new ApplicationException(ErrorCode.NOT_FOUND, ErrorCode.NOT_FOUND.getMessage());
+        }
+
+        isCorrectEmail = member.getEmail().equals(loginRequestDto.getEmail());
         isCorrectPassword = isValidPassword(memberId, loginRequestDto.getPassword());
 
         if (!isCorrectEmail || !isCorrectPassword) {

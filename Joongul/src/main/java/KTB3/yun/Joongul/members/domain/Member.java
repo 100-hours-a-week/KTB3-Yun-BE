@@ -21,15 +21,23 @@ public class Member {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "member_id")
+    @Column(name = "member_id", nullable = false)
     private Long memberId;
 
+    @Column(nullable = false)
     private String email;
+
+    @Column(nullable = false)
     private String password;
+
+    @Column(nullable = false)
     private String nickname;
 
-    @Column(name = "profile_image")
+    @Column(name = "profile_image", nullable = false)
     private String profileImage;
+
+    @Column(name = "is_deleted", nullable = true)
+    private Boolean isDeleted;
 
     @OneToMany(mappedBy = "member")
     private List<Post> postsList = new ArrayList<>();
@@ -47,5 +55,9 @@ public class Member {
 
     public void modifyPassword(String password) {
         this.password = password;
+    }
+
+    public void deleteMember() {
+        this.isDeleted = true;
     }
 }

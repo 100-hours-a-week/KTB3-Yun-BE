@@ -22,28 +22,38 @@ public class Post {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "post_id")
+    @Column(name = "post_id", nullable = false)
     private Long postId;
 
+    @Column(nullable = false)
     private String title;
+
+    @Column(nullable = false)
     private String nickname;
+
+    @Column(nullable = false)
     private String content;
 
-    @Column(name = "post_image")
+    @Column(name = "post_image", nullable = true)
     private String postImage;
 
+    @Column(nullable = false)
     private int likes;
+
+    @Column(nullable = false)
     private int comments;
+
+    @Column(nullable = false)
     private int views;
 
-    @Column(name = "created_at")
+    @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
 
-    @Column(name = "is_deleted")
-    private boolean isDeleted;
+    @Column(name = "is_deleted", nullable = false)
+    private Boolean isDeleted;
 
     @ManyToOne
-    @JoinColumn(name = "member_id")
+    @JoinColumn(name = "member_id", nullable = false)
     private Member member;
 
     @OneToMany(mappedBy = "post")
@@ -51,4 +61,30 @@ public class Post {
 
     @OneToMany(mappedBy = "post")
     private List<Like> likeslist = new ArrayList<>();
+
+    public Post updatePost(String title, String content, String postImage) {
+        this.title = title;
+        this.content = content;
+        this.postImage = postImage;
+
+        return this;
+    }
+
+    public void increaseLikes() {
+        this.likes++;
+    }
+    public void decreaseLikes() {
+        this.likes--;
+    }
+
+    public void increaseComments() {
+        this.comments++;
+    }
+    public void decreaseComments() {
+        this.comments--;
+    }
+
+    public void increaseViews() {
+        this.views++;
+    }
 }
