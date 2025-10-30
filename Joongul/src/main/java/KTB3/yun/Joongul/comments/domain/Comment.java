@@ -19,14 +19,20 @@ public class Comment {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "comment_id")
+    @Column(name = "comment_id", nullable = false)
     private Long commentId;
 
+    @Column(nullable = false)
     private String nickname;
+
+    @Column(nullable = false)
     private String content;
 
-    @Column(name = "created_at")
+    @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
+
+    @Column(name = "is_deleted", nullable = true)
+    private Boolean isDeleted;
 
     @ManyToOne
     @JoinColumn(name = "member_id")
