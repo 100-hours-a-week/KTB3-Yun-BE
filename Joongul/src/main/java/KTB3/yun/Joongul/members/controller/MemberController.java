@@ -64,6 +64,10 @@ public class MemberController {
         authService.checkLoginUser(request);
         authService.checkAuthority(request, memberId);
         memberService.modifyPassword(passwordUpdateRequestDto, memberId);
+
+        HttpSession session = request.getSession(false);
+        session.invalidate();
+
         return ResponseEntity.ok().body("password_change_success");
     }
 
