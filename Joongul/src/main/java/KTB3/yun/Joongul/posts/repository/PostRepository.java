@@ -17,6 +17,7 @@ public interface PostRepository extends JpaRepository<Post, Long> {
 //    Long findMemberIdByPostId(Long postId);
 
     @Override
+    @Nonnull
     List<Post> findAll();
 
     @Override
