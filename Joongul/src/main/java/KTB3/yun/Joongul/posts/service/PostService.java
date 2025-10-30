@@ -49,7 +49,7 @@ public class PostService {
 
         return new PostDetailResponseDto(post.getPostId(), post.getTitle(), post.getNickname(), post.getContent(),
                 post.getPostImage(), post.getLikes(), post.getComments(), post.getViews(),
-                post.getCreatedAt().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")), post.getCommentsList());
+                post.getCreatedAt().format(DateTimeFormatter.ofPattern("yyyy-MM-dd hh:mm:ss")), post.getCommentsList());
     }
 
     public PostDetailResponseDto savePost(PostWriteRequestDto postWriteRequestDto, Long memberId) {
