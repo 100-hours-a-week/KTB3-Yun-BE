@@ -73,7 +73,7 @@ public class PostService {
     }
 
     @Transactional
-    public PostDetailResponseDto updatePost(Long postId, PostUpdateRequestDto postUpdateRequestDto, Long memberId) {
+    public PostDetailResponseDto updatePost(Long postId, PostUpdateRequestDto postUpdateRequestDto) {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new ApplicationException(ErrorCode.NOT_FOUND, ErrorCode.NOT_FOUND.getMessage()));
 

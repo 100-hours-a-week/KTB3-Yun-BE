@@ -65,7 +65,7 @@ public class PostController {
         authService.checkLoginUser(request);
         Long postMemberId = postService.getMemberId(postId);
         authService.checkAuthority(request, postMemberId);
-        PostDetailResponseDto updatedPost = postService.updatePost(postId, postUpdateRequestDto, postMemberId);
+        PostDetailResponseDto updatedPost = postService.updatePost(postId, postUpdateRequestDto);
         return ResponseEntity.status(HttpStatus.OK)
                 .body(new ApiResponseDto<>("post_update_success", updatedPost));
     }
