@@ -15,7 +15,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 @Service
 public class CommentService {
@@ -32,14 +31,6 @@ public class CommentService {
         this.commentRepository = commentRepository;
         this.memberRepository = memberRepository;
         this.postRepository = postRepository;
-    }
-
-    public List<CommentResponseDto> getComments(Long postId) {
-        return commentRepository.findAllByPost_PostId(postId)
-                .stream()
-                .filter(comment -> !comment.getIsDeleted())
-                .map(CommentResponseDto::from)
-                .toList();
     }
 
     @Transactional

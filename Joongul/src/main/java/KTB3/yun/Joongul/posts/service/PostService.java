@@ -1,5 +1,7 @@
 package KTB3.yun.Joongul.posts.service;
 
+import KTB3.yun.Joongul.comments.domain.Comment;
+import KTB3.yun.Joongul.comments.dto.CommentResponseDto;
 import KTB3.yun.Joongul.common.exceptions.ApplicationException;
 import KTB3.yun.Joongul.common.exceptions.ErrorCode;
 import KTB3.yun.Joongul.members.domain.Member;
@@ -47,9 +49,11 @@ public class PostService {
 
         post.increaseViews();
 
+        List<CommentResponseDto> commentsDtoList = commentsListToDto(post);
+
         return new PostDetailResponseDto(post.getPostId(), post.getTitle(), post.getNickname(), post.getContent(),
                 post.getPostImage(), post.getLikes(), post.getComments(), post.getViews(),
-                post.getCreatedAt().format(DateTimeFormatter.ofPattern("yyyy-MM-dd hh:mm:ss")), post.getCommentsList());
+                post.getCreatedAt().format(DateTimeFormatter.ofPattern("yyyy-MM-dd hh:mm:ss")), commentsDtoList);
     }
 
     public PostDetailResponseDto savePost(PostWriteRequestDto postWriteRequestDto, Long memberId) {
@@ -69,7 +73,7 @@ public class PostService {
                 .member(member)
                 .build();
         postRepository.save(newPost);
-        return PostDetailResponseDto.from(newPost);
+        return PostDetailResponseDto.from(newPost, new ArrayList<>());
     }
 
     @Transactional
@@ -84,7 +88,9 @@ public class PostService {
         Post updatedPost = post.updatePost(postUpdateRequestDto.getTitle(), postUpdateRequestDto.getContent(),
                 postUpdateRequestDto.getPostImage());
 
-        return PostDetailResponseDto.from(updatedPost);
+        List<CommentResponseDto> commentsDtoList = commentsListToDto(post);
+
+        return PostDetailResponseDto.from(updatedPost, commentsDtoList);
     }
 
     @Transactional
@@ -96,5 +102,10 @@ public class PostService {
         return postRepository.findById(postId)
                 .orElseThrow(() -> new ApplicationException(ErrorCode.NOT_FOUND, ErrorCode.NOT_FOUND.getMessage()))
                 .getMember().getMemberId();
+    }
+
+    private List<CommentResponseDto> commentsListToDto(Post post) {
+        List<Comment> commentsList = post.getCommentsList();
+        return commentsList.stream().map(CommentResponseDto::from).toList();
     }
 }

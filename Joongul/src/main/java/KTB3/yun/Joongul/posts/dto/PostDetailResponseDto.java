@@ -1,6 +1,6 @@
 package KTB3.yun.Joongul.posts.dto;
 
-import KTB3.yun.Joongul.comments.domain.Comment;
+import KTB3.yun.Joongul.comments.dto.CommentResponseDto;
 import KTB3.yun.Joongul.posts.domain.Post;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -20,16 +20,12 @@ public class PostDetailResponseDto {
     private int comments;
     private int views;
     private String createdAt;
-    private List<Comment> commentsList;
+    private List<CommentResponseDto> commentsList;
 
-    public static PostDetailResponseDto from(Post post){
+    public static PostDetailResponseDto from(Post post, List<CommentResponseDto> commentsList) {
         return new PostDetailResponseDto(post.getPostId(), post.getTitle(), post.getNickname(), post.getContent(),
                 post.getPostImage(), post.getLikes(), post.getComments(), post.getViews(),
                 post.getCreatedAt().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")),
-                post.getCommentsList());
-    }
-
-    public void setLikes(int likes) {
-        this.likes = likes;
+                commentsList);
     }
 }

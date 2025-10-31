@@ -10,7 +10,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 
 @Getter
@@ -57,10 +56,10 @@ public class Post {
     private Member member;
 
     @OneToMany(mappedBy = "post")
-    private List<Comment> commentsList = new ArrayList<>();
+    private List<Comment> commentsList;
 
     @OneToMany(mappedBy = "post")
-    private List<Like> likeslist = new ArrayList<>();
+    private List<Like> likeslist;
 
     public void addComment(Comment comment) {
         this.commentsList.add(comment);
