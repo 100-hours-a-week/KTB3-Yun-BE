@@ -35,10 +35,14 @@ public class Comment {
     private Boolean isDeleted;
 
     @ManyToOne
-    @JoinColumn(name = "member_id")
+    @JoinColumn(name = "member_id", nullable = false)
     private Member member;
 
     @ManyToOne
-    @JoinColumn(name = "post_id")
+    @JoinColumn(name = "post_id", nullable = false)
     private Post post;
+
+    public void updateComment(String content) {
+        this.content = content;
+    }
 }

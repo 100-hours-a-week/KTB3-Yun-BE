@@ -62,6 +62,10 @@ public class Post {
     @OneToMany(mappedBy = "post")
     private List<Like> likeslist = new ArrayList<>();
 
+    public void addComment(Comment comment) {
+        this.commentsList.add(comment);
+    }
+
     public Post updatePost(String title, String content, String postImage) {
         this.title = title;
         this.content = content;

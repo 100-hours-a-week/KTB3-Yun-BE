@@ -46,7 +46,7 @@ public class CommentController {
         authService.checkLoginUser(request);
         Long memberId = commentService.getMemberId(commentId);
         authService.checkAuthority(request, memberId);
-        CommentResponseDto comment = commentService.updateComment(postId, commentId, dto, memberId);
+        CommentResponseDto comment = commentService.updateComment(commentId, postId, dto);
         return ResponseEntity.status(HttpStatus.OK).body(new ApiResponseDto<>("comment_update_success", comment));
     }
 

@@ -4,6 +4,8 @@ import KTB3.yun.Joongul.comments.domain.Comment;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
+import java.time.format.DateTimeFormatter;
+
 @Getter
 @AllArgsConstructor
 public class CommentResponseDto {
@@ -14,6 +16,6 @@ public class CommentResponseDto {
 
     public static CommentResponseDto from(Comment comment) {
         return new CommentResponseDto(comment.getCommentId(), comment.getNickname(),
-                comment.getContent(), comment.getCreatedAt().toString());
+                comment.getContent(), comment.getCreatedAt().format(DateTimeFormatter.ofPattern("yyyy-MM-dd hh:mm:ss")));
     }
 }
