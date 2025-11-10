@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.*;
 @Tag(name = "Member-Controller", description = "Member CRUD API")
 @RestController
 @RequestMapping("/members")
+@CrossOrigin(origins = "http://127.0.0.1:5500/", allowCredentials = "true")
 public class MemberController {
 
     private final MemberService memberService;
