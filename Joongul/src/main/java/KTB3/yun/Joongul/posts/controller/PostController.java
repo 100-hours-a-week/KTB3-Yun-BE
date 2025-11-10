@@ -20,6 +20,7 @@ import java.util.List;
 @Tag(name = "Post-Controller", description = "Post CRUD API")
 @RestController
 @RequestMapping("/posts")
+@CrossOrigin(origins = "http://127.0.0.1:5500/", allowCredentials = "true")
 public class PostController {
     private final PostService postService;
     private final AuthService authService;
