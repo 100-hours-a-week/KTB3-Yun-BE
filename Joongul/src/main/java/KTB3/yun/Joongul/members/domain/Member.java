@@ -33,7 +33,7 @@ public class Member {
     @Column(nullable = false)
     private String nickname;
 
-    @Column(name = "profile_image", nullable = false)
+    @Column(name = "profile_image", nullable = true)
     private String profileImage;
 
     @Column(name = "is_deleted", nullable = true)
