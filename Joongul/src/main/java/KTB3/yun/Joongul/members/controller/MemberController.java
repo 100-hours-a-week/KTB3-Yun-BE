@@ -17,7 +17,8 @@ import org.springframework.web.bind.annotation.*;
 @Tag(name = "Member-Controller", description = "Member CRUD API")
 @RestController
 @RequestMapping("/members")
-@CrossOrigin(origins = "http://127.0.0.1:5500/", allowCredentials = "true")
+@CrossOrigin(origins = "http://127.0.0.1:5500", allowCredentials = "true",
+        methods = {RequestMethod.GET, RequestMethod.POST, RequestMethod.PUT, RequestMethod.PATCH, RequestMethod.DELETE})
 public class MemberController {
 
     private final MemberService memberService;
@@ -36,13 +37,12 @@ public class MemberController {
         return ResponseEntity.status(HttpStatus.CREATED).body("register_success");
     }
 
-    @Operation(summary = "회원 정보 조회 API")
-    @GetMapping("/{id}")
-    public ResponseEntity<ApiResponseDto<MemberInfoResponseDto>> getMemberInfo(@PathVariable(name = "id") Long memberId,
-                                                                               HttpServletRequest request) {
+    @Operation(summary = "로그인 회원 정보 조회 API")
+    @GetMapping("/me")
+    public ResponseEntity<ApiResponseDto<MemberInfoResponseDto>> getMemberInfo(HttpServletRequest request) {
 
         authService.checkLoginUser(request);
-        authService.checkAuthority(request, memberId);
+        Long memberId = authService.getMemberId(request);
         MemberInfoResponseDto info = memberService.getMemberInfo(memberId);
         return ResponseEntity.ok().body(new ApiResponseDto<>("get_user_info_success", info));
     }
@@ -76,13 +76,15 @@ public class MemberController {
     @Operation(summary = "회원 탈퇴 API")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> withdrawMember(@PathVariable(name = "id") Long memberId,
-                                               HttpServletRequest request) {
+                                               HttpServletRequest request,
+                                               HttpServletResponse response) {
         authService.checkLoginUser(request);
         authService.checkAuthority(request, memberId);
         memberService.withdraw(memberId);
 
         HttpSession session = request.getSession(false);
         session.invalidate();
+        response.addHeader("Set-Cookie", "JSESSIONID=; Max-Age=0; Path=/; HttpOnly");
 
         return ResponseEntity.noContent().build();
     }

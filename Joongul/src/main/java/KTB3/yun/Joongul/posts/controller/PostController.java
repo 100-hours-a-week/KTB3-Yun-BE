@@ -11,6 +11,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -55,6 +56,8 @@ public class PostController {
         Long memberId = authService.getMemberId(request);
         PostDetailResponseDto savedPost = postService.savePost(postWriteRequestDto, memberId);
         return ResponseEntity.status(HttpStatus.CREATED)
+                .header(HttpHeaders.ACCESS_CONTROL_EXPOSE_HEADERS, HttpHeaders.LOCATION)
+                .header(HttpHeaders.LOCATION, "/posts/" + savedPost.getPostId())
                 .body(new ApiResponseDto<>("post_write_success", savedPost));
     }
 
