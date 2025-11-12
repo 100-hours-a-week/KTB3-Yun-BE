@@ -51,4 +51,8 @@ public class LikeService {
         likeRepository.delete(like);
         post.decreaseLikes();
     }
+
+    public Boolean isLiked(Long postId, Long memberId) {
+        return likeRepository.existsByPost_PostIdAndMember_MemberId(postId, memberId);
+    }
 }

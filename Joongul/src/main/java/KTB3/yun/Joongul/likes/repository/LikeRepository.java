@@ -24,5 +24,7 @@ public interface LikeRepository extends JpaRepository<Like, Long> {
     @Override
     void delete(@Nonnull Like entity);
 
+    boolean existsByPost_PostIdAndMember_MemberId(Long postId, Long memberId);
+
     Optional<Like> findByPost_PostIdAndMember_MemberId(Long postId, Long memberId);
 }

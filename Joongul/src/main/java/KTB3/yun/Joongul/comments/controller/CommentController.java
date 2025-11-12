@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.*;
 @Tag(name = "Comment-Controller", description = "Comment CRUD API")
 @RestController
 @RequestMapping("/posts/{postId}/comments")
+@CrossOrigin(origins = "http://127.0.0.1:5500/", allowCredentials = "true")
 public class CommentController {
     private final CommentService commentService;
     private final AuthService authService;
