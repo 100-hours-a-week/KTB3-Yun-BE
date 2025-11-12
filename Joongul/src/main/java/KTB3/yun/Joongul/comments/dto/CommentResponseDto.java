@@ -16,6 +16,6 @@ public class CommentResponseDto {
 
     public static CommentResponseDto from(Comment comment) {
         return new CommentResponseDto(comment.getCommentId(), comment.getNickname(),
-                comment.getContent(), comment.getCreatedAt().format(DateTimeFormatter.ofPattern("yyyy-MM-dd hh:mm:ss")));
+                comment.getContent(), comment.getCreatedAt().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
     }
 }
