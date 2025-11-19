@@ -17,8 +17,6 @@ import org.springframework.web.bind.annotation.*;
 @Tag(name = "Member-Controller", description = "Member CRUD API")
 @RestController
 @RequestMapping("/members")
-@CrossOrigin(origins = "http://127.0.0.1:5500", allowCredentials = "true",
-        methods = {RequestMethod.GET, RequestMethod.POST, RequestMethod.PUT, RequestMethod.PATCH, RequestMethod.DELETE})
 public class MemberController {
 
     private final MemberService memberService;
@@ -41,7 +39,6 @@ public class MemberController {
     @GetMapping("/me")
     public ResponseEntity<ApiResponseDto<MemberInfoResponseDto>> getMemberInfo(HttpServletRequest request) {
 
-        authService.checkLoginUser(request);
         Long memberId = authService.getMemberId(request);
         MemberInfoResponseDto info = memberService.getMemberInfo(memberId);
         return ResponseEntity.ok().body(new ApiResponseDto<>("get_user_info_success", info));
@@ -52,7 +49,6 @@ public class MemberController {
     public ResponseEntity<String> updateMemberInfo(@PathVariable(name = "id") Long memberId,
                                                    @RequestBody @Valid MemberInfoUpdateRequestDto memberInfoUpdateRequestDto,
                                                    HttpServletRequest request) {
-        authService.checkLoginUser(request);
         authService.checkAuthority(request, memberId);
         memberService.updateMemberInfo(memberInfoUpdateRequestDto, memberId);
         return ResponseEntity.ok().body("user_info_change_success");
@@ -63,7 +59,6 @@ public class MemberController {
     public ResponseEntity<String> modifyPassword(@PathVariable(name = "id") Long memberId,
                                                  @RequestBody @Valid PasswordUpdateRequestDto passwordUpdateRequestDto,
                                                  HttpServletRequest request) {
-        authService.checkLoginUser(request);
         authService.checkAuthority(request, memberId);
         memberService.modifyPassword(passwordUpdateRequestDto, memberId);
 
@@ -78,7 +73,6 @@ public class MemberController {
     public ResponseEntity<Void> withdrawMember(@PathVariable(name = "id") Long memberId,
                                                HttpServletRequest request,
                                                HttpServletResponse response) {
-        authService.checkLoginUser(request);
         authService.checkAuthority(request, memberId);
         memberService.withdraw(memberId);
 
@@ -91,13 +85,10 @@ public class MemberController {
 
     @Operation(summary = "로그인 API")
     @PostMapping("/session")
-    public ResponseEntity<String> login(@RequestBody LoginRequestDto loginRequestDto,
-                                                  HttpServletRequest request) {
-        if (memberService.isCorrectMember(loginRequestDto)) {
-            HttpSession session = request.getSession();
-            session.setAttribute("USER_ID", memberService.findIdByEmail(loginRequestDto.getEmail()));
-        }
-        return ResponseEntity.ok("login_success");
+    public ResponseEntity<LoginResponseDto> login(@RequestBody LoginRequestDto loginRequestDto,
+                                                  HttpServletResponse response) {
+        LoginResponseDto loginResponseDto = memberService.login(loginRequestDto);
+        return ResponseEntity.ok(loginResponseDto);
     }
 
     @Operation(summary = "로그아웃 API")
@@ -106,7 +97,7 @@ public class MemberController {
     public ResponseEntity<Void> logout(HttpServletRequest request, HttpServletResponse response) {
         HttpSession session = request.getSession(false);
         session.invalidate();
-        response.addHeader("Set-Cookie", "JSESSIONID=; Max-Age=0; Path=/; HttpOnly");
+        response.addHeader("Set-Cookie", "refreshToken=; Max-Age=0; Path=/; HttpOnly");
         return ResponseEntity.noContent().build();
     }
 }

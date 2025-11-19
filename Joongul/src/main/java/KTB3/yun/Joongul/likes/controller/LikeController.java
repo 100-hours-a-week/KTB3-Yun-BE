@@ -11,7 +11,6 @@ import org.springframework.web.bind.annotation.*;
 @Tag(name = "Like-Controller", description = "Like CRUD API")
 @RestController
 @RequestMapping("/posts/{id}/likes")
-@CrossOrigin(origins = "http://127.0.0.1:5500/", allowCredentials = "true")
 public class LikeController {
     private final LikeService likeService;
     private final AuthService authService;
@@ -24,7 +23,6 @@ public class LikeController {
     @Operation(summary = "좋아요 추가 API")
     @PostMapping
     public ResponseEntity<Void> like(@PathVariable(name = "id") Long postId, HttpServletRequest request) {
-        authService.checkLoginUser(request);
         Long memberId = authService.getMemberId(request);
         likeService.toggleLike(postId, memberId);
         return ResponseEntity.noContent().build();
@@ -33,7 +31,6 @@ public class LikeController {
     @Operation(summary = "좋아요 취소 API")
     @DeleteMapping
     public ResponseEntity<Void> unlike(@PathVariable(name = "id") Long postId, HttpServletRequest request) {
-        authService.checkLoginUser(request);
         Long memberId = authService.getMemberId(request);
         likeService.untoggleLike(postId, memberId);
         return ResponseEntity.noContent().build();
@@ -42,7 +39,6 @@ public class LikeController {
     @Operation(summary = "좋아요 여부 확인")
     @GetMapping
     public ResponseEntity<Boolean> isLiked(@PathVariable(name = "id") Long postId, HttpServletRequest request) {
-        authService.checkLoginUser(request);
         Long memberId = authService.getMemberId(request);
         return ResponseEntity.ok(likeService.isLiked(postId, memberId));
     }

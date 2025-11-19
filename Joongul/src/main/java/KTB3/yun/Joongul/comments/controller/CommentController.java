@@ -16,7 +16,6 @@ import org.springframework.web.bind.annotation.*;
 @Tag(name = "Comment-Controller", description = "Comment CRUD API")
 @RestController
 @RequestMapping("/posts/{postId}/comments")
-@CrossOrigin(origins = "http://127.0.0.1:5500/", allowCredentials = "true")
 public class CommentController {
     private final CommentService commentService;
     private final AuthService authService;
@@ -31,7 +30,6 @@ public class CommentController {
     public ResponseEntity<ApiResponseDto<CommentResponseDto>> writeComment(@PathVariable(name = "postId") Long postId,
                                                                            @RequestBody CommentWriteRequestDto dto,
                                                                            HttpServletRequest request) {
-        authService.checkLoginUser(request);
         Long memberId = authService.getMemberId(request);
         CommentResponseDto comment = commentService.writeComment(postId, dto, memberId);
         return ResponseEntity.status(HttpStatus.CREATED)
@@ -44,7 +42,6 @@ public class CommentController {
                                                                             @PathVariable(name = "commentId") Long commentId,
                                                                             @RequestBody CommentUpdateRequestDto dto,
                                                                             HttpServletRequest request) {
-        authService.checkLoginUser(request);
         Long memberId = commentService.getMemberId(commentId);
         authService.checkAuthority(request, memberId);
         CommentResponseDto comment = commentService.updateComment(commentId, postId, dto);
@@ -56,7 +53,6 @@ public class CommentController {
     public ResponseEntity<Void> deleteComment(@PathVariable(name = "postId") Long postId,
                                               @PathVariable(name = "commentId") Long commentId,
                                               HttpServletRequest request) {
-        authService.checkLoginUser(request);
         Long memberId = commentService.getMemberId(commentId);
         authService.checkAuthority(request, memberId);
         commentService.deleteComment(commentId, postId);

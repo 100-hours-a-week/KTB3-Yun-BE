@@ -1,35 +1,47 @@
 package KTB3.yun.Joongul.members.service;
 
+import KTB3.yun.Joongul.common.auth.JwtTokenProvider;
+import KTB3.yun.Joongul.common.dto.JwtToken;
 import KTB3.yun.Joongul.common.exceptions.ApplicationException;
 import KTB3.yun.Joongul.common.exceptions.ErrorCode;
 import KTB3.yun.Joongul.members.domain.Member;
+import KTB3.yun.Joongul.members.domain.MemberDetails;
 import KTB3.yun.Joongul.members.dto.*;
 import KTB3.yun.Joongul.members.repository.MemberRepository;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Service
 public class MemberService {
 
     private final MemberRepository memberRepository;
+    private final AuthenticationManager authenticationManager;
+    private final JwtTokenProvider jwtTokenProvider;
     private final BCryptPasswordEncoder passwordEncoder;
 
-    //이런 식으로 비즈니스 로직 검사에 변수를 활용하면 좀 더 가독성이 좋아지지 않을까 생각했습니다.
-    private boolean isExistEmail;
     private boolean isExistNickname;
-    private boolean isUsedPassword;
     private boolean isSameWithConfirmPassword;
-    private boolean isCorrectEmail;
-    private boolean isCorrectPassword;
 
-    public MemberService(MemberRepository memberRepository, BCryptPasswordEncoder passwordEncoder) {
+    public MemberService(MemberRepository memberRepository, AuthenticationManager authenticationManager,
+                         JwtTokenProvider jwtTokenProvider, BCryptPasswordEncoder passwordEncoder) {
         this.memberRepository = memberRepository;
+        this.authenticationManager = authenticationManager;
+        this.jwtTokenProvider = jwtTokenProvider;
         this.passwordEncoder = passwordEncoder;
     }
 
+    @Transactional
     public void signup(SignUpRequestDto signupRequestDto) {
-        isExistEmail = memberRepository.existsByEmail(signupRequestDto.getEmail());
+        //이런 식으로 비즈니스 로직 검사에 변수를 활용하면 좀 더 가독성이 좋아지지 않을까 생각했습니다.
+        boolean isExistEmail = memberRepository.existsByEmail(signupRequestDto.getEmail());
         isExistNickname = memberRepository.existsByNickname(signupRequestDto.getNickname());
         isSameWithConfirmPassword = signupRequestDto.getPassword().equals(signupRequestDto.getConfirmPassword());
 
@@ -43,12 +55,16 @@ public class MemberService {
 
         String encodedPassword = passwordEncoder.encode(signupRequestDto.getPassword());
 
+        List<String> roles = new ArrayList<>();
+        roles.add("ROLE_USER");
+
         Member member = Member.builder()
                 .email(signupRequestDto.getEmail())
                 .password(encodedPassword)
                 .nickname(signupRequestDto.getNickname())
                 .profileImage(signupRequestDto.getProfileImage())
                 .isDeleted(Boolean.FALSE)
+                .roles(roles)
                 .build();
         memberRepository.save(member);
     }
@@ -87,7 +103,7 @@ public class MemberService {
 
     @Transactional
     public void modifyPassword(PasswordUpdateRequestDto passwordUpdateRequestDto, Long memberId) {
-        isUsedPassword = isValidPassword(memberId, passwordUpdateRequestDto.getPassword());
+        boolean isUsedPassword = isValidPassword(memberId, passwordUpdateRequestDto.getPassword());
         isSameWithConfirmPassword = passwordUpdateRequestDto.getPassword().equals(passwordUpdateRequestDto.getConfirmPassword());
 
         if (isUsedPassword) {
@@ -114,6 +130,30 @@ public class MemberService {
                 .orElseThrow(() -> new ApplicationException(ErrorCode.NOT_FOUND, ErrorCode.NOT_FOUND.getMessage())).deleteMember();
     }
 
+    public LoginResponseDto login(LoginRequestDto loginRequestDto) {
+        String email = loginRequestDto.getEmail();
+        String password = loginRequestDto.getPassword();
+
+        UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(email, password);
+        Authentication authentication = authenticationManager.authenticate(authenticationToken);
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+
+        JwtToken jwtToken = jwtTokenProvider.generateToken(authentication);
+        MemberDetails principal = (MemberDetails) authentication.getPrincipal();
+        String nickname = principal.getMember().getNickname();
+
+        return new LoginResponseDto(jwtToken.getGrantType(), jwtToken.getAccessToken(), jwtToken.getRefreshToken(),
+                jwtToken.getRefreshTokenExpireTime(), email, nickname);
+    }
+
+    public void logout(String accessToken) {
+        if (!jwtTokenProvider.validateToken(accessToken)) {
+            throw new ApplicationException(ErrorCode.INVALID_TOKEN, ErrorCode.INVALID_TOKEN.getMessage());
+        }
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    }
+
     //일단 Service 쪽에서 이메일/비밀번호 검증을 해서 틀리면 예외를 던지게끔 했는데 이 구조가 맞는지 모르겠습니다...
     public boolean isCorrectMember(LoginRequestDto loginRequestDto) {
         Long memberId = findIdByEmail(loginRequestDto.getEmail());
@@ -125,8 +165,8 @@ public class MemberService {
             throw new ApplicationException(ErrorCode.NOT_FOUND, ErrorCode.NOT_FOUND.getMessage());
         }
 
-        isCorrectEmail = member.getEmail().equals(loginRequestDto.getEmail());
-        isCorrectPassword = isValidPassword(memberId, loginRequestDto.getPassword());
+        boolean isCorrectEmail = member.getEmail().equals(loginRequestDto.getEmail());
+        boolean isCorrectPassword = isValidPassword(memberId, loginRequestDto.getPassword());
 
         if (!isCorrectEmail || !isCorrectPassword) {
             throw new ApplicationException(ErrorCode.INVALID_EMAIL_OR_PASSWORD,

@@ -21,7 +21,6 @@ import java.util.List;
 @Tag(name = "Post-Controller", description = "Post CRUD API")
 @RestController
 @RequestMapping("/posts")
-@CrossOrigin(origins = "http://127.0.0.1:5500/", allowCredentials = "true")
 public class PostController {
     private final PostService postService;
     private final AuthService authService;
@@ -34,7 +33,6 @@ public class PostController {
     @Operation(summary = "게시글 목록 조회 API")
     @GetMapping
     public ResponseEntity<ApiResponseDto<List<PostSimpleResponseDto>>> getPostList(HttpServletRequest request) {
-        authService.checkLoginUser(request);
         List<PostSimpleResponseDto> postsList = postService.getAllPosts();
         return ResponseEntity.status(HttpStatus.OK).body(new ApiResponseDto<>("posts_list_success", postsList));
     }
@@ -43,7 +41,6 @@ public class PostController {
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponseDto<PostDetailResponseDto>> getPostDetail(@PathVariable(name = "id") Long postId,
                                                                HttpServletRequest request) {
-        authService.checkLoginUser(request);
         PostDetailResponseDto post = postService.getDetailPost(postId);
         return ResponseEntity.status(HttpStatus.OK).body(new ApiResponseDto<>("post_detail_success", post));
     }
@@ -52,7 +49,6 @@ public class PostController {
     @PostMapping
     public ResponseEntity<ApiResponseDto<PostDetailResponseDto>> savePost(@RequestBody @Valid PostWriteRequestDto postWriteRequestDto,
                                                           HttpServletRequest request) {
-        authService.checkLoginUser(request);
         Long memberId = authService.getMemberId(request);
         PostDetailResponseDto savedPost = postService.savePost(postWriteRequestDto, memberId);
         return ResponseEntity.status(HttpStatus.CREATED)
@@ -66,7 +62,6 @@ public class PostController {
     public ResponseEntity<ApiResponseDto<PostDetailResponseDto>> updatePost(@PathVariable(name = "id") Long postId,
                                                                             @RequestBody @Valid PostUpdateRequestDto postUpdateRequestDto,
                                                                             HttpServletRequest request) {
-        authService.checkLoginUser(request);
         Long postMemberId = postService.getMemberId(postId);
         authService.checkAuthority(request, postMemberId);
         PostDetailResponseDto updatedPost = postService.updatePost(postId, postUpdateRequestDto);
@@ -77,7 +72,6 @@ public class PostController {
     @Operation(summary = "게시글 삭제 API")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deletePost(@PathVariable(name = "id") Long postId, HttpServletRequest request) {
-        authService.checkLoginUser(request);
         Long postMemberId = postService.getMemberId(postId);
         authService.checkAuthority(request, postMemberId);
         postService.deletePost(postId);

@@ -39,6 +39,10 @@ public class Member {
     @Column(name = "is_deleted", nullable = true)
     private Boolean isDeleted;
 
+    @ElementCollection(fetch = FetchType.EAGER)
+    @Builder.Default
+    private List<String> roles = new ArrayList<>();
+
     @OneToMany(mappedBy = "member")
     private List<Post> postsList = new ArrayList<>();
 
