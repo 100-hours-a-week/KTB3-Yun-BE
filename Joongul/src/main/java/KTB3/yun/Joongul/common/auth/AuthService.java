@@ -3,28 +3,23 @@ package KTB3.yun.Joongul.common.auth;
 import KTB3.yun.Joongul.common.exceptions.ApplicationException;
 import KTB3.yun.Joongul.common.exceptions.ErrorCode;
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpSession;
 import org.springframework.stereotype.Component;
 
 @Component
 public class AuthService {
 
-    private final static String USER_ID = "USER_ID";
+    private final JwtTokenProvider jwtTokenProvider;
 
-    public Long getMemberId(HttpServletRequest request) {
-        return (Long) request.getSession().getAttribute(USER_ID);
+    public AuthService(JwtTokenProvider jwtTokenProvider) {
+        this.jwtTokenProvider = jwtTokenProvider;
     }
 
-    public void checkLoginUser(HttpServletRequest request) {
-        HttpSession session = request.getSession(false);
-        if (session == null) {
-            throw new ApplicationException(ErrorCode.UNAUTHORIZED_REQUEST, ErrorCode.UNAUTHORIZED_REQUEST.getMessage());
-        }
+    public Long getMemberId(HttpServletRequest request) {
+        return jwtTokenProvider.extractMemberId(request);
     }
 
     public void checkAuthority(HttpServletRequest request, Long id) {
-        HttpSession session = request.getSession(false);
-        Long loginId = (Long) session.getAttribute(USER_ID);
+        Long loginId = jwtTokenProvider.extractMemberId(request);
         if (!loginId.equals(id)) {
             throw new ApplicationException(ErrorCode.FORBIDDEN_REQUEST, ErrorCode.FORBIDDEN_REQUEST.getMessage());
         }
