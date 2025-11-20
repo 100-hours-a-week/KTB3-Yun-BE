@@ -32,8 +32,8 @@ import java.util.stream.Collectors;
 public class JwtTokenProvider {
     private final SecretKey key;
     private final MemberRepository memberRepository;
-    private static final long ACCESS_TOKEN_VALID_TIME = Duration.ofMinutes(30).toMillis();
-    private static final long REFRESH_TOKEN_VALID_TIME = Duration.ofDays(14).toMillis();
+    private static final long ACCESS_TOKEN_VALID_TIME = Duration.ofMinutes(10).toMillis();
+    private static final long REFRESH_TOKEN_VALID_TIME = Duration.ofDays(7).toMillis();
 
     public JwtTokenProvider(@Value("${jwt.secret}") String secretKey, MemberRepository memberRepository) {
         byte[] keyBytes = Decoders.BASE64.decode(secretKey);

@@ -8,7 +8,6 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -62,9 +61,6 @@ public class MemberController {
         authService.checkAuthority(request, memberId);
         memberService.modifyPassword(passwordUpdateRequestDto, memberId);
 
-        HttpSession session = request.getSession(false);
-        session.invalidate();
-
         return ResponseEntity.ok().body("password_change_success");
     }
 
@@ -76,10 +72,6 @@ public class MemberController {
         authService.checkAuthority(request, memberId);
         memberService.withdraw(memberId);
 
-        HttpSession session = request.getSession(false);
-        session.invalidate();
-        response.addHeader("Set-Cookie", "JSESSIONID=; Max-Age=0; Path=/; HttpOnly");
-
         return ResponseEntity.noContent().build();
     }
 
@@ -87,7 +79,13 @@ public class MemberController {
     @PostMapping("/session")
     public ResponseEntity<LoginResponseDto> login(@RequestBody LoginRequestDto loginRequestDto,
                                                   HttpServletResponse response) {
+        memberService.isCorrectMember(loginRequestDto);
         LoginResponseDto loginResponseDto = memberService.login(loginRequestDto);
+        String refreshToken = loginResponseDto.getRefreshToken();
+        String setToken = "refreshToken=" + refreshToken + "; HttpOnly; " + "SameSite=Lax; "
+                + "Path=/; " + "Max-Age=" + loginResponseDto.getRefreshTokenExpireTime();
+
+        response.addHeader("Set-Cookie", setToken);
         return ResponseEntity.ok(loginResponseDto);
     }
 
@@ -95,8 +93,6 @@ public class MemberController {
     //로그아웃의 HTTP Method를 POST로 했는데, 그래서 그런지 RESTful한 이름이 떠오르지 않습니다..
     @PostMapping("/logout")
     public ResponseEntity<Void> logout(HttpServletRequest request, HttpServletResponse response) {
-        HttpSession session = request.getSession(false);
-        session.invalidate();
         response.addHeader("Set-Cookie", "refreshToken=; Max-Age=0; Path=/; HttpOnly");
         return ResponseEntity.noContent().build();
     }
