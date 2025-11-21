@@ -4,6 +4,7 @@ import KTB3.yun.Joongul.common.auth.AuthService;
 import KTB3.yun.Joongul.common.dto.ApiResponseDto;
 import KTB3.yun.Joongul.members.dto.*;
 import KTB3.yun.Joongul.members.service.MemberService;
+import KTB3.yun.Joongul.members.service.TokenService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
@@ -20,10 +21,12 @@ public class MemberController {
 
     private final MemberService memberService;
     private final AuthService authService;
+    private final TokenService tokenService;
 
-    public MemberController(MemberService memberService, AuthService authService) {
+    public MemberController(MemberService memberService, AuthService authService, TokenService tokenService) {
         this.memberService = memberService;
         this.authService = authService;
+        this.tokenService = tokenService;
     }
 
 
@@ -82,10 +85,11 @@ public class MemberController {
         memberService.isCorrectMember(loginRequestDto);
         LoginResponseDto loginResponseDto = memberService.login(loginRequestDto);
         String refreshToken = loginResponseDto.getRefreshToken();
-        String setToken = "refreshToken=" + refreshToken + "; HttpOnly; " + "SameSite=Lax; "
+
+        String setRefreshToken = "refreshToken=" + refreshToken + "; HttpOnly; " + "SameSite=Lax; "
                 + "Path=/; " + "Max-Age=" + loginResponseDto.getRefreshTokenExpireTime();
 
-        response.addHeader("Set-Cookie", setToken);
+        response.addHeader("Set-Cookie", setRefreshToken);
         return ResponseEntity.ok(loginResponseDto);
     }
 
@@ -93,7 +97,13 @@ public class MemberController {
     //로그아웃의 HTTP Method를 POST로 했는데, 그래서 그런지 RESTful한 이름이 떠오르지 않습니다..
     @PostMapping("/logout")
     public ResponseEntity<Void> logout(HttpServletRequest request, HttpServletResponse response) {
-        response.addHeader("Set-Cookie", "refreshToken=; Max-Age=0; Path=/; HttpOnly");
+        String refreshToken = tokenService.extractRefreshToken(request);
+        memberService.logout(refreshToken);
+
+        String setRefreshToken = "refreshToken=" + refreshToken + "; HttpOnly; " + "SameSite=Lax; "
+                + "Path=/; " + "Max-Age=0";
+
+        response.addHeader("Set-Cookie", setRefreshToken);
         return ResponseEntity.noContent().build();
     }
 }

@@ -6,8 +6,10 @@ import KTB3.yun.Joongul.common.exceptions.ApplicationException;
 import KTB3.yun.Joongul.common.exceptions.ErrorCode;
 import KTB3.yun.Joongul.members.domain.Member;
 import KTB3.yun.Joongul.members.domain.MemberDetails;
+import KTB3.yun.Joongul.members.domain.RefreshToken;
 import KTB3.yun.Joongul.members.dto.*;
 import KTB3.yun.Joongul.members.repository.MemberRepository;
+import KTB3.yun.Joongul.members.repository.RefreshTokenRepository;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -26,16 +28,19 @@ public class MemberService {
     private final AuthenticationManager authenticationManager;
     private final JwtTokenProvider jwtTokenProvider;
     private final BCryptPasswordEncoder passwordEncoder;
+    private final RefreshTokenRepository refreshTokenRepository;
 
     private boolean isExistNickname;
     private boolean isSameWithConfirmPassword;
 
     public MemberService(MemberRepository memberRepository, AuthenticationManager authenticationManager,
-                         JwtTokenProvider jwtTokenProvider, BCryptPasswordEncoder passwordEncoder) {
+                         JwtTokenProvider jwtTokenProvider, BCryptPasswordEncoder passwordEncoder,
+                         RefreshTokenRepository refreshTokenRepository) {
         this.memberRepository = memberRepository;
         this.authenticationManager = authenticationManager;
         this.jwtTokenProvider = jwtTokenProvider;
         this.passwordEncoder = passwordEncoder;
+        this.refreshTokenRepository = refreshTokenRepository;
     }
 
     @Transactional
@@ -142,16 +147,23 @@ public class MemberService {
         MemberDetails principal = (MemberDetails) authentication.getPrincipal();
         String nickname = principal.getMember().getNickname();
 
+        RefreshToken refreshToken = RefreshToken.builder()
+                .refreshToken(jwtToken.getRefreshToken())
+                .createdAt(System.currentTimeMillis())
+                .expiresAt(jwtToken.getRefreshTokenExpireTime())
+                .member(((MemberDetails) authentication.getPrincipal()).getMember())
+                .revoked(false)
+                .build();
+
+        refreshTokenRepository.save(refreshToken);
+
         return new LoginResponseDto(jwtToken.getGrantType(), jwtToken.getAccessToken(), jwtToken.getRefreshToken(),
                 jwtToken.getRefreshTokenExpireTime(), email, nickname);
     }
 
-    public void logout(String accessToken) {
-        if (!jwtTokenProvider.validateToken(accessToken)) {
-            throw new ApplicationException(ErrorCode.INVALID_TOKEN, ErrorCode.INVALID_TOKEN.getMessage());
-        }
-
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    @Transactional
+    public void logout(String refreshToken) {
+        refreshTokenRepository.deleteByRefreshToken(refreshToken);
     }
 
     //일단 Service 쪽에서 이메일/비밀번호 검증을 해서 틀리면 예외를 던지게끔 했는데 이 구조가 맞는지 모르겠습니다...
