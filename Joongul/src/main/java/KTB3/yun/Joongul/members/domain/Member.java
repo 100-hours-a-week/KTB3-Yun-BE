@@ -11,6 +11,7 @@ import lombok.NoArgsConstructor;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 @Getter
 @AllArgsConstructor
@@ -63,5 +64,18 @@ public class Member {
 
     public void deleteMember() {
         this.isDeleted = true;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Member member)) return false;
+
+        return Objects.equals(memberId, member.memberId);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(memberId);
     }
 }

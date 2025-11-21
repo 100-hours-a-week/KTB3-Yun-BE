@@ -30,9 +30,6 @@ public class MemberService {
     private final BCryptPasswordEncoder passwordEncoder;
     private final RefreshTokenRepository refreshTokenRepository;
 
-    private boolean isExistNickname;
-    private boolean isSameWithConfirmPassword;
-
     public MemberService(MemberRepository memberRepository, AuthenticationManager authenticationManager,
                          JwtTokenProvider jwtTokenProvider, BCryptPasswordEncoder passwordEncoder,
                          RefreshTokenRepository refreshTokenRepository) {
@@ -47,8 +44,8 @@ public class MemberService {
     public void signup(SignUpRequestDto signupRequestDto) {
         //이런 식으로 비즈니스 로직 검사에 변수를 활용하면 좀 더 가독성이 좋아지지 않을까 생각했습니다.
         boolean isExistEmail = memberRepository.existsByEmail(signupRequestDto.getEmail());
-        isExistNickname = memberRepository.existsByNickname(signupRequestDto.getNickname());
-        isSameWithConfirmPassword = signupRequestDto.getPassword().equals(signupRequestDto.getConfirmPassword());
+        boolean isExistNickname = memberRepository.existsByNickname(signupRequestDto.getNickname());
+        boolean isSameWithConfirmPassword = signupRequestDto.getPassword().equals(signupRequestDto.getConfirmPassword());
 
         if (isExistEmail) {
             throw new ApplicationException(ErrorCode.DUPLICATE_EMAIL, ErrorCode.DUPLICATE_EMAIL.getMessage());
@@ -90,7 +87,7 @@ public class MemberService {
 
     @Transactional
     public void updateMemberInfo(MemberInfoUpdateRequestDto dto, Long memberId) {
-        isExistNickname = memberRepository.existsByNickname(dto.getNickname());
+        boolean isExistNickname = memberRepository.existsByNickname(dto.getNickname());
 
         if (isExistNickname) {
             throw new ApplicationException(ErrorCode.DUPLICATE_NICKNAME, ErrorCode.DUPLICATE_NICKNAME.getMessage());
@@ -109,7 +106,7 @@ public class MemberService {
     @Transactional
     public void modifyPassword(PasswordUpdateRequestDto passwordUpdateRequestDto, Long memberId) {
         boolean isUsedPassword = isValidPassword(memberId, passwordUpdateRequestDto.getPassword());
-        isSameWithConfirmPassword = passwordUpdateRequestDto.getPassword().equals(passwordUpdateRequestDto.getConfirmPassword());
+        boolean isSameWithConfirmPassword = passwordUpdateRequestDto.getPassword().equals(passwordUpdateRequestDto.getConfirmPassword());
 
         if (isUsedPassword) {
             throw new ApplicationException(ErrorCode.USING_PASSWORD, ErrorCode.USING_PASSWORD.getMessage());
