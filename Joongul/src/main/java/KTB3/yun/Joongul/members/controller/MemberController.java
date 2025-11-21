@@ -60,9 +60,18 @@ public class MemberController {
     @PatchMapping("/{id}")
     public ResponseEntity<String> modifyPassword(@PathVariable(name = "id") Long memberId,
                                                  @RequestBody @Valid PasswordUpdateRequestDto passwordUpdateRequestDto,
-                                                 HttpServletRequest request) {
+                                                 HttpServletRequest request,
+                                                 HttpServletResponse response) {
         authService.checkAuthority(request, memberId);
         memberService.modifyPassword(passwordUpdateRequestDto, memberId);
+        String oldRefreshToken = tokenService.extractRefreshToken(request);
+
+        memberService.logout(oldRefreshToken);
+
+        String setRefreshToken = "refreshToken=; " + "HttpOnly; " + "SameSite=Lax; "
+                + "Path=/; " + "Max-Age=0";
+
+        response.addHeader("Set-Cookie", setRefreshToken);
 
         return ResponseEntity.ok().body("password_change_success");
     }
@@ -72,8 +81,16 @@ public class MemberController {
     public ResponseEntity<Void> withdrawMember(@PathVariable(name = "id") Long memberId,
                                                HttpServletRequest request,
                                                HttpServletResponse response) {
+        String refreshToken = tokenService.extractRefreshToken(request);
         authService.checkAuthority(request, memberId);
         memberService.withdraw(memberId);
+
+        memberService.logout(refreshToken);
+
+        String setRefreshToken = "refreshToken=; " + "HttpOnly; " + "SameSite=Lax; "
+                + "Path=/; " + "Max-Age=0";
+
+        response.addHeader("Set-Cookie", setRefreshToken);
 
         return ResponseEntity.noContent().build();
     }
