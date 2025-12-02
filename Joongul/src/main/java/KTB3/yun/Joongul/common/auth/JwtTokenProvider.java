@@ -31,7 +31,7 @@ import java.util.Date;
 public class JwtTokenProvider {
     private final SecretKey key;
     private final MemberRepository memberRepository;
-    private static final long ACCESS_TOKEN_VALID_TIME = Duration.ofMinutes(1).toMillis();
+    private static final long ACCESS_TOKEN_VALID_TIME = Duration.ofMinutes(10).toMillis();
     private static final long REFRESH_TOKEN_VALID_TIME = Duration.ofDays(7).toMillis();
 
     public JwtTokenProvider(@Value("${jwt.secret}") String secretKey, MemberRepository memberRepository) {
