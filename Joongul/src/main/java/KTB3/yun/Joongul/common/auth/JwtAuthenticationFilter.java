@@ -1,7 +1,5 @@
 package KTB3.yun.Joongul.common.auth;
 
-import KTB3.yun.Joongul.common.exceptions.ApplicationException;
-import KTB3.yun.Joongul.common.exceptions.ErrorCode;
 import jakarta.annotation.Nonnull;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -25,6 +23,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, @Nonnull HttpServletResponse response,
                                     @Nonnull FilterChain filterChain) throws ServletException, IOException {
+        String requestURI = request.getRequestURI();
+
+        if (requestURI.equals("/token")) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
         String bearerToken = request.getHeader("Authorization");
 
         if (StringUtils.hasText(bearerToken) && bearerToken.startsWith("Bearer")) {
@@ -34,7 +39,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 Authentication authentication = jwtTokenProvider.getAuthentication(token);
                 SecurityContextHolder.getContext().setAuthentication(authentication);
             } else {
-                throw new ApplicationException(ErrorCode.INVALID_TOKEN, ErrorCode.INVALID_TOKEN.getMessage());
+                doFilter(request, response, filterChain);
+                return;
             }
         }
         filterChain.doFilter(request, response);

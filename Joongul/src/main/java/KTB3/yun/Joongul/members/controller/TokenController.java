@@ -26,7 +26,7 @@ public class TokenController {
         String oldRefreshToken = tokenService.extractRefreshToken(request);
 
         if (oldRefreshToken.equals("not_found")) {
-            throw new ApplicationException(ErrorCode.NOT_FOUND, ErrorCode.NOT_FOUND.getMessage());
+            throw new ApplicationException(ErrorCode.TOKEN_NOT_FOUND, ErrorCode.TOKEN_NOT_FOUND.getMessage());
         }
 
         RefreshTokenResponseDto refreshTokenResponseDto = tokenService.getNewToken(oldRefreshToken);

@@ -25,14 +25,13 @@ import java.time.Duration;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Component
 public class JwtTokenProvider {
     private final SecretKey key;
     private final MemberRepository memberRepository;
-    private static final long ACCESS_TOKEN_VALID_TIME = Duration.ofMinutes(10).toMillis();
+    private static final long ACCESS_TOKEN_VALID_TIME = Duration.ofMinutes(1).toMillis();
     private static final long REFRESH_TOKEN_VALID_TIME = Duration.ofDays(7).toMillis();
 
     public JwtTokenProvider(@Value("${jwt.secret}") String secretKey, MemberRepository memberRepository) {
@@ -41,18 +40,14 @@ public class JwtTokenProvider {
         this.memberRepository = memberRepository;
     }
 
-    public JwtToken generateToken(Authentication authentication) {
-        String authorities = authentication.getAuthorities().stream()
-                .map(GrantedAuthority::getAuthority)
-                .collect(Collectors.joining());
-
+    public JwtToken generateJwt(String email, Collection<? extends GrantedAuthority> authorities) {
         long now = (new Date()).getTime();
 
         Date accessTokenExpirationTime = new Date(now + ACCESS_TOKEN_VALID_TIME);
         Date refreshTokenExpirationTime = new Date(now + REFRESH_TOKEN_VALID_TIME);
 
         String accessToken = Jwts.builder()
-                .subject(authentication.getName())
+                .subject(email)
                 .claim("auth", authorities)
                 .expiration(accessTokenExpirationTime)
                 .signWith(key)
@@ -69,6 +64,15 @@ public class JwtTokenProvider {
                 .refreshToken(refreshToken)
                 .refreshTokenExpireTime(REFRESH_TOKEN_VALID_TIME)
                 .build();
+    }
+
+    public JwtToken generateToken(Authentication authentication) {
+
+        String email = authentication.getName();
+
+        Collection<? extends GrantedAuthority> authorities = authentication.getAuthorities();
+
+        return generateJwt(email, authorities);
     }
 
     public Authentication getAuthentication(String accessToken) {

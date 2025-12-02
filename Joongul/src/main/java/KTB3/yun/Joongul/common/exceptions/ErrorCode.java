@@ -13,6 +13,8 @@ public enum ErrorCode {
     UNAUTHORIZED_REQUEST(HttpStatus.UNAUTHORIZED, "로그인이 필요합니다."),
     FORBIDDEN_REQUEST(HttpStatus.FORBIDDEN, "잘못된 접근입니다."),
     NOT_FOUND(HttpStatus.NOT_FOUND, "존재하지 않는 리소스입니다."),
+    MEMBER_NOT_FOUND(HttpStatus.NOT_FOUND, "존재하지 않는 회원입니다."),
+    TOKEN_NOT_FOUND(HttpStatus.NOT_FOUND, "존재하지 않는 리프레시 토큰입니다."),
     DUPLICATE_EMAIL(HttpStatus.CONFLICT, "중복된 이메일입니다."),
     DUPLICATE_NICKNAME(HttpStatus.CONFLICT, "중복된 닉네임입니다."),
     USING_PASSWORD(HttpStatus.UNPROCESSABLE_ENTITY, "이미 사용 중인 비밀번호입니다."),
