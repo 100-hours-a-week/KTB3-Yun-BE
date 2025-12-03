@@ -1,23 +1,31 @@
 package KTB3.yun.Joongul.members.service;
 
 import KTB3.yun.Joongul.common.auth.JwtTokenProvider;
+import KTB3.yun.Joongul.common.dto.JwtToken;
 import KTB3.yun.Joongul.common.exceptions.ApplicationException;
 import KTB3.yun.Joongul.common.exceptions.ErrorCode;
-import KTB3.yun.Joongul.members.dto.SignUpRequestDto;
+import KTB3.yun.Joongul.members.domain.Member;
+import KTB3.yun.Joongul.members.domain.MemberDetails;
+import KTB3.yun.Joongul.members.domain.RefreshToken;
+import KTB3.yun.Joongul.members.dto.*;
 import KTB3.yun.Joongul.members.repository.MemberRepository;
 import KTB3.yun.Joongul.members.repository.RefreshTokenRepository;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import java.util.List;
+import java.util.Optional;
+
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.*;
 
@@ -56,7 +64,7 @@ class MemberServiceTest {
         //then
         ApplicationException ex = assertThrows(ApplicationException.class, () -> memberService.signup(dto));
         assertEquals(ErrorCode.DUPLICATE_EMAIL, ex.getErrorCode());
-        verify(memberRepository, never()).save(any());
+        then(memberRepository).should(never()).save(any());
     }
 
     @Test
@@ -73,7 +81,7 @@ class MemberServiceTest {
         //then
         ApplicationException ex = assertThrows(ApplicationException.class, () -> memberService.signup(dto));
         assertEquals(ErrorCode.DUPLICATE_NICKNAME, ex.getErrorCode());
-        verify(memberRepository, never()).save(any());
+        then(memberRepository).should(never()).save(any());
     }
 
     @Test
@@ -90,7 +98,7 @@ class MemberServiceTest {
         //then
         ApplicationException ex = assertThrows(ApplicationException.class, () -> memberService.signup(dto));
         assertEquals(ErrorCode.NOT_SAME_WITH_CONFIRM, ex.getErrorCode());
-        verify(memberRepository, never()).save(any());
+        then(memberRepository).should(never()).save(any());
     }
 
     @Test
@@ -106,51 +114,395 @@ class MemberServiceTest {
         memberService.signup(dto);
 
         //then
-        verify(memberRepository, times(1)).save(any());
+        then(memberRepository).should(times(1)).save(any());
     }
 
-    @Disabled
     @Test
-    void getMemberInfo() {
+    @DisplayName("조회하려는 회원이 존재하지 않을 때 NOT_FOUND 예외를 던진다")
+    void 회원조회_시_없는_회원인_경우_NOT_FOUND_예외 () {
+        //given
+        Long memberId = 1L;
+        given(memberRepository.findById(memberId)).willReturn(Optional.empty());
+
+        //when
+
+        //then
+        ApplicationException ex = assertThrows(ApplicationException.class, () -> memberService.getMemberInfo(memberId));
+        assertEquals(ErrorCode.NOT_FOUND, ex.getErrorCode());
     }
 
-    @Disabled
     @Test
-    void updateMemberInfo() {
+    @DisplayName("조회하려는 회원이 탈퇴했을 때 NOT_FOUND 예외를 던진다")
+    void 회원조회_시_탈퇴한_회원인_경우_NOT_FOUND_예외 () {
+        //given
+        Long memberId = 1L;
+        Member member = Member.builder()
+                .memberId(1L)
+                .email("1")
+                .password("1")
+                .nickname("1")
+                .profileImage("")
+                .isDeleted(true)
+                .build();
+        given(memberRepository.findById(memberId))
+                .willReturn(Optional.of(member));
+
+        //when
+
+        //then
+        ApplicationException ex = assertThrows(ApplicationException.class, () -> memberService.getMemberInfo(memberId));
+        assertEquals(ErrorCode.NOT_FOUND, ex.getErrorCode());
     }
 
-    @Disabled
     @Test
-    void modifyPassword() {
+    @DisplayName("조회하려는 회원이 존재하고 탈퇴하지 않았다면 해당 회원의 정보로 MemberInfoResponseDto를 반환한다")
+    void 회원조회_시_회원이_존재하고_미탈퇴인_경우_회원정보_DTO_반환() {
+        //given
+        Long memberId = 1L;
+        Member member = Member.builder()
+                .memberId(memberId)
+                .email("1")
+                .password("1")
+                .nickname("1")
+                .profileImage("")
+                .isDeleted(false)
+                .build();
+        given(memberRepository.findById(memberId)).willReturn(Optional.of(member));
+
+        //when
+        MemberInfoResponseDto dto = memberService.getMemberInfo(memberId);
+
+        //then
+        then(memberRepository).should(times(1)).findById(memberId);
+        assertEquals(member.getMemberId(), dto.getMemberId());
+        assertEquals(member.getEmail(), dto.getEmail());
+        assertEquals(member.getNickname(), dto.getNickname());
+        assertEquals(member.getProfileImage(), dto.getProfileImage());
     }
 
-    @Disabled
     @Test
-    void withdraw() {
+    @DisplayName("회원정보 수정 시 닉네임이 중복인 경우 DUPLICATE_NICKNAME 예외를 던지고 findById가 호출되지 않는다")
+    void 회원정보_수정_시_중복_닉네임이면_DUPLICATE_NICKNAME_예외 () {
+        //given
+        MemberInfoUpdateRequestDto dto = new MemberInfoUpdateRequestDto("테스트1", "");
+        given(memberRepository.existsByNickname(dto.getNickname())).willReturn(true);
+
+
+        //when
+
+        //then
+        ApplicationException ex = assertThrows(ApplicationException.class,
+                () -> memberService.updateMemberInfo(dto, 1L));
+        assertEquals(ErrorCode.DUPLICATE_NICKNAME, ex.getErrorCode());
+        then(memberRepository).should(never()).findById(any());
     }
 
-    @Disabled
     @Test
-    void login() {
+    @DisplayName("정보를 수정하려는 회원이 존재하지 않을 때 NOT_FOUND 예외를 던진다")
+    void 회원정보_수정_시_회원이_존재하지_않으면_NOT_FOUND_예외 () {
+        //given
+        Long memberId = 1L;
+        MemberInfoUpdateRequestDto dto = new MemberInfoUpdateRequestDto("테스트1", "");
+        given(memberRepository.existsByNickname(dto.getNickname())).willReturn(false);
+        given(memberRepository.findById(memberId)).willReturn(Optional.empty());
+
+        //when
+
+        //then
+        ApplicationException ex = assertThrows(ApplicationException.class,
+                () -> memberService.updateMemberInfo(dto, memberId));
+        assertEquals(ErrorCode.NOT_FOUND, ex.getErrorCode());
     }
 
-    @Disabled
     @Test
-    void logout() {
+    @DisplayName("정보를 수정하려는 회원이 탈퇴했을 때 NOT_FOUND 예외를 던진다")
+    void 회원정보_수정_시_회원이_탈퇴했다면_NOT_FOUND_예외 () {
+        //given
+        Long memberId = 1L;
+        Member member = Member.builder()
+                .memberId(memberId)
+                .email("1")
+                .password("1")
+                .nickname("1")
+                .profileImage("")
+                .isDeleted(true)
+                .build();
+        MemberInfoUpdateRequestDto dto = new MemberInfoUpdateRequestDto("테스트1", "");
+        given(memberRepository.existsByNickname(dto.getNickname())).willReturn(false);
+        given(memberRepository.findById(memberId)).willReturn(Optional.of(member));
+
+        //when
+
+        //then
+        ApplicationException ex = assertThrows(ApplicationException.class, () -> memberService.updateMemberInfo(dto, memberId));
+        assertEquals(ErrorCode.NOT_FOUND, ex.getErrorCode());
     }
 
-    @Disabled
     @Test
-    void isCorrectMember() {
+    @DisplayName("닉네임 중복 검사를 통과한 뒤 정보를 수정하려는 회원이 존재하고 탈퇴하지 않았다면 해당 회원의 닉네임과 프로필 사진이 성공적으로 수정된다")
+    void 회원정보_수정_시_유효성_통과_및_활성_회원이면_닉네임과_프로필_사진_수정() {
+        //given
+        Long memberId = 1L;
+        Member member = Member.builder()
+                .memberId(memberId)
+                .email("1")
+                .password("1")
+                .nickname("1")
+                .profileImage("")
+                .isDeleted(false)
+                .build();
+        MemberInfoUpdateRequestDto dto = new MemberInfoUpdateRequestDto("테스트1", "123");
+        given(memberRepository.existsByNickname(dto.getNickname())).willReturn(false);
+        given(memberRepository.findById(memberId)).willReturn(Optional.of(member));
+
+        //when
+        assertEquals("1", member.getNickname()); //수정 전
+        memberService.updateMemberInfo(dto, memberId);
+
+        //then
+        assertEquals(dto.getNickname(), member.getNickname());
+        assertEquals(dto.getProfileImage(), member.getProfileImage());
     }
 
-    @Disabled
     @Test
-    void findIdByEmail() {
+    @DisplayName("기존에 사용하던 비밀번호로 변경 시도 시 USING_PASSWORD 예외를 던진다")
+    void 비밀번호_변경_시_기존과_같으면_USING_PASSWORD_예외 () {
+        //given
+        Long memberId = 1L;
+        String savedPassword = "Encoded-Password";
+        Member member = Member.builder()
+                .memberId(memberId)
+                .email("1")
+                .password(savedPassword)
+                .isDeleted(false)
+                .build();
+        PasswordUpdateRequestDto dto = new PasswordUpdateRequestDto("123", "123");
+        given(memberRepository.findById(memberId)).willReturn(Optional.of(member));
+        given(passwordEncoder.matches(dto.getPassword(), savedPassword)).willReturn(true);
+
+        //when
+
+        //then
+        ApplicationException ex = assertThrows(ApplicationException.class, () -> memberService.modifyPassword(dto, memberId));
+        assertEquals(ErrorCode.USING_PASSWORD, ex.getErrorCode());
     }
 
-    @Disabled
     @Test
-    void isValidPassword() {
+    @DisplayName("비밀번호와 비밀번호 확인이 같지 않으면 변경 시도 시 NOT_SAME_WITH_CONFIRM 예외를 던진다")
+    void 비밀번호와_비밀번호_확인이_같지_않으면_NOT_SAME_WITH_CONFIRM_예외 () {
+        //given
+        Long memberId = 1L;
+        String savedPassword = "Encoded-Password";
+        Member member = Member.builder()
+                .memberId(memberId)
+                .email("1")
+                .password(savedPassword)
+                .isDeleted(false)
+                .build();
+        PasswordUpdateRequestDto dto = new PasswordUpdateRequestDto("123", "1");
+        given(memberRepository.findById(memberId)).willReturn(Optional.of(member));
+        given(passwordEncoder.matches(dto.getPassword(), savedPassword)).willReturn(false);
+
+        //when
+
+        //then
+        ApplicationException ex = assertThrows(ApplicationException.class, () -> memberService.modifyPassword(dto, memberId));
+        assertEquals(ErrorCode.NOT_SAME_WITH_CONFIRM, ex.getErrorCode());
+    }
+
+    @Test
+    @DisplayName("존재하지 않는 사용자로 비밀번호 변경 요청 시 NOT_FOUND 예외를 던진다")
+    void 존재하지_않는_사용자의_비밀번호_변경_요청_시_NOT_FOUND_예외 () {
+        //given
+        Long memberId = 1L;
+        PasswordUpdateRequestDto dto = new PasswordUpdateRequestDto("123", "123");
+        given(memberRepository.findById(memberId)).willReturn(Optional.empty());
+
+        //when
+
+        //then
+        ApplicationException ex = assertThrows(ApplicationException.class, () -> memberService.modifyPassword(dto, memberId));
+        assertEquals(ErrorCode.NOT_FOUND, ex.getErrorCode());
+    }
+
+    @Test
+    @DisplayName("탈퇴한 사용자로 비밀번호 변경 요청 시 NOT_FOUND 예외를 던진다")
+    void 탈퇴한_사용자의_비밀번호_변경_요청_시_NOT_FOUND_예외 () {
+        //given
+        Long memberId = 1L;
+        String savedPassword = "Encoded-Password";
+        Member member = Member.builder()
+                .memberId(memberId)
+                .email("1")
+                .password(savedPassword)
+                .isDeleted(true)
+                .build();
+        PasswordUpdateRequestDto dto = new PasswordUpdateRequestDto("123", "123");
+        given(memberRepository.findById(memberId)).willReturn(Optional.of(member));
+        given(passwordEncoder.matches(dto.getPassword(), savedPassword)).willReturn(false);
+
+        //when
+
+        //then
+        ApplicationException ex = assertThrows(ApplicationException.class, () -> memberService.modifyPassword(dto, memberId));
+        assertEquals(ErrorCode.NOT_FOUND, ex.getErrorCode());
+    }
+
+    @Test
+    @DisplayName("비밀번호 변경 시 유효성 검사를 통과하고 탈퇴하지 않은 회원이라면 해당 회원의 비밀번호가 성공적으로 수정된다")
+    void 유효성_검사_통과_및_미탈퇴_회원인_경우_비밀번호_변경() {
+        //given
+        Long memberId = 1L;
+        String savedPassword = "Encoded-Password";
+        Member member = Member.builder()
+                .memberId(memberId)
+                .email("1")
+                .password(savedPassword)
+                .isDeleted(false)
+                .build();
+        PasswordUpdateRequestDto dto = new PasswordUpdateRequestDto("123", "123");
+        given(memberRepository.findById(memberId)).willReturn(Optional.of(member));
+        given(passwordEncoder.matches(dto.getPassword(), savedPassword)).willReturn(false);
+        given(passwordEncoder.encode(dto.getPassword())).willReturn(dto.getPassword());
+
+        //when
+        assertEquals(savedPassword, member.getPassword()); //변경 전
+        memberService.modifyPassword(dto, memberId);
+
+        //then
+        assertEquals(dto.getPassword(), member.getPassword());
+    }
+
+    @Test
+    @DisplayName("존재하지 않는 회원이 탈퇴 요청을 할 시 NOT_FOUND 예외를 던진다")
+    void 존재하지_않는_사용자가_탈퇴_요청_시_NOT_FOUND () {
+        //given
+        Long memberId = 1L;
+        given(memberRepository.findById(memberId)).willReturn(Optional.empty());
+
+        //when
+        //then
+        ApplicationException ex = assertThrows(ApplicationException.class, () -> memberService.withdraw(memberId));
+        assertEquals(ErrorCode.NOT_FOUND, ex.getErrorCode());
+    }
+
+    @Test
+    @DisplayName("존재하는 회원이 탈퇴 요청을 할 시 회원의 isDeleted가 true로 변경된다")
+    void 존재하는_회원이_탈퇴_요청_시_회원_탈퇴 () {
+        //given
+        Long memberId = 1L;
+        Member member = Member.builder()
+                .memberId(memberId)
+                .email("1")
+                .password("1")
+                .isDeleted(false)
+                .build();
+        given(memberRepository.findById(memberId)).willReturn(Optional.of(member));
+
+        //when
+        assertFalse(member.getIsDeleted()); //변경 전
+        memberService.withdraw(memberId);
+
+        //then
+        assertTrue(member.getIsDeleted());
+    }
+
+    @Test
+    @DisplayName("로그인 요청을 보내면 authenticate(), generateToken(), save()가 한 번 실행된 뒤 LoginResponseDto를 반환한다")
+    void 로그인_요청_시_authenticate_generateToken_save_실행되고_ResponseDto_반환() {
+        //given
+        Long memberId = 1L;
+        String email = "email";
+        String password = "password";
+        String nickname = "nickname";
+        List<String> roles = List.of("ROLE_USER");
+        Member member = Member.builder()
+                .memberId(memberId)
+                .email(email)
+                .password(password)
+                .nickname(nickname)
+                .roles(roles).build();
+        LoginRequestDto dto = new LoginRequestDto(email, password);
+        JwtToken token = JwtToken.builder()
+                .grantType("1")
+                .accessToken("a")
+                .refreshToken("r")
+                .refreshTokenExpireTime(1000L)
+                .build();
+
+        MemberDetails memberDetails = new MemberDetails(member);
+
+        Authentication auth = new UsernamePasswordAuthenticationToken(memberDetails,
+                null, memberDetails.getAuthorities());
+        ArgumentCaptor<RefreshToken> captor = ArgumentCaptor.forClass(RefreshToken.class);
+        given(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class))).willReturn(auth);
+        given(jwtTokenProvider.generateToken(any(Authentication.class))).willReturn(token);
+
+        //when
+        LoginResponseDto resDto = memberService.login(dto);
+
+        //then
+        then(authenticationManager).should(times(1)).authenticate(any());
+        then(jwtTokenProvider).should(times(1)).generateToken(any());
+        then(refreshTokenRepository).should(times(1)).save(captor.capture());
+
+        assertEquals("1", resDto.getGrantType());
+        assertEquals("a", resDto.getAccessToken());
+        assertEquals("r", resDto.getRefreshToken());
+        assertEquals(1000L, resDto.getRefreshTokenExpireTime());
+        assertEquals(member.getEmail(), resDto.getEmail());
+        assertEquals(member.getNickname(), resDto.getNickname());
+
+        RefreshToken refreshToken = captor.getValue();
+
+        assertEquals(token.getRefreshToken(), refreshToken.getRefreshToken());
+        assertEquals(token.getRefreshTokenExpireTime(), refreshToken.getExpiresAt());
+        assertEquals(member, refreshToken.getMember());
+        assertFalse(refreshToken.isRevoked());
+    }
+
+    @Test
+    @DisplayName("로그아웃 요청을 보내면 deleteByRefreshToken이 refreshToken을 넘겨받아 한 번 실행된다")
+    void 로그아웃_요청_시_deleteByRefreshToken_1번_실행 () {
+        //given
+        String refreshToken = "refreshToken";
+
+        //when
+        memberService.logout(refreshToken);
+
+        //then
+        then(refreshTokenRepository).should(times(1)).deleteByRefreshToken(refreshToken);
+    }
+
+    @Test
+    @DisplayName("존재하지 않는 회원의 memberId를 받으면 NOT_FOUND 예외를 던진다")
+    void isUsedPassword가_존재하지_않는_회원의_memberId_받으면_NOT_FOUND () {
+        //given
+        Long memberId = 1L;
+        String password = "password";
+        given(memberRepository.findById(memberId)).willReturn(Optional.empty());
+
+        //when
+        //then
+        ApplicationException ex = assertThrows(ApplicationException.class, () -> memberService.isUsedPassword(memberId, password));
+        assertEquals(ErrorCode.NOT_FOUND, ex.getErrorCode());
+    }
+
+    @Test
+    @DisplayName("정상적인 회원의 memberId와 password를 받으면 memberId로 회원을 조회한 뒤 passwordEncoder.matches를 1번 실행한다.")
+    void isUsedPassword가_정상적인_회원의_memberId와_password를_받음 () {
+        //given
+        Long memberId = 1L;
+        String rawPassword = "raw";
+        String savedPassword = "saved";
+        Member member = Member.builder().password(savedPassword).build();
+        given(memberRepository.findById(memberId)).willReturn(Optional.of(member));
+
+        //when
+        memberService.isUsedPassword(memberId, rawPassword);
+
+        //then
+        then(memberRepository).should(times(1)).findById(memberId);
+        then(passwordEncoder).should(times(1)).matches(rawPassword, member.getPassword());
     }
 }

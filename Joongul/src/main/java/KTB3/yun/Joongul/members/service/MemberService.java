@@ -42,7 +42,6 @@ public class MemberService {
 
     @Transactional
     public void signup(SignUpRequestDto signupRequestDto) {
-        //이런 식으로 비즈니스 로직 검사에 변수를 활용하면 좀 더 가독성이 좋아지지 않을까 생각했습니다.
         boolean isExistEmail = memberRepository.existsByEmail(signupRequestDto.getEmail());
         boolean isExistNickname = memberRepository.existsByNickname(signupRequestDto.getNickname());
         boolean isSameWithConfirmPassword = signupRequestDto.getPassword().equals(signupRequestDto.getConfirmPassword());
@@ -105,12 +104,13 @@ public class MemberService {
 
     @Transactional
     public void modifyPassword(PasswordUpdateRequestDto passwordUpdateRequestDto, Long memberId) {
-        boolean isUsedPassword = isValidPassword(memberId, passwordUpdateRequestDto.getPassword());
+        boolean isUsedPassword = isUsedPassword(memberId, passwordUpdateRequestDto.getPassword());
         boolean isSameWithConfirmPassword = passwordUpdateRequestDto.getPassword().equals(passwordUpdateRequestDto.getConfirmPassword());
 
         if (isUsedPassword) {
             throw new ApplicationException(ErrorCode.USING_PASSWORD, ErrorCode.USING_PASSWORD.getMessage());
-        } else if (!isSameWithConfirmPassword) {
+        }
+        else if (!isSameWithConfirmPassword) {
             throw new ApplicationException(ErrorCode.NOT_SAME_WITH_CONFIRM, ErrorCode.NOT_SAME_WITH_CONFIRM.getMessage());
         }
 
@@ -163,34 +163,8 @@ public class MemberService {
         refreshTokenRepository.deleteByRefreshToken(refreshToken);
     }
 
-    //일단 Service 쪽에서 이메일/비밀번호 검증을 해서 틀리면 예외를 던지게끔 했는데 이 구조가 맞는지 모르겠습니다...
-    public boolean isCorrectMember(LoginRequestDto loginRequestDto) {
-        Long memberId = findIdByEmail(loginRequestDto.getEmail());
 
-        Member member = memberRepository.findById(memberId)
-                .orElseThrow(() -> new ApplicationException(ErrorCode.NOT_FOUND, ErrorCode.NOT_FOUND.getMessage()));
-
-        if (member.getIsDeleted()) {
-            throw new ApplicationException(ErrorCode.NOT_FOUND, ErrorCode.NOT_FOUND.getMessage());
-        }
-
-        boolean isCorrectEmail = member.getEmail().equals(loginRequestDto.getEmail());
-        boolean isCorrectPassword = isValidPassword(memberId, loginRequestDto.getPassword());
-
-        if (!isCorrectEmail || !isCorrectPassword) {
-            throw new ApplicationException(ErrorCode.INVALID_EMAIL_OR_PASSWORD,
-                    ErrorCode.INVALID_EMAIL_OR_PASSWORD.getMessage());
-        }
-
-        return true;
-    }
-
-    public Long findIdByEmail(String email) {
-        return memberRepository.findByEmail(email).orElseThrow(() -> new ApplicationException(ErrorCode.NOT_FOUND, ErrorCode.NOT_FOUND.getMessage()))
-                .getMemberId();
-    }
-
-    public boolean isValidPassword(Long memberId, String password) {
+    public boolean isUsedPassword(Long memberId, String password) {
         String savedPassword = memberRepository.findById(memberId)
                 .orElseThrow(() -> new ApplicationException(ErrorCode.NOT_FOUND, ErrorCode.NOT_FOUND.getMessage()))
                 .getPassword();

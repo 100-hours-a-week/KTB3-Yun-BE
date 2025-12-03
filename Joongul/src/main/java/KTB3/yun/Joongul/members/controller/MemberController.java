@@ -99,7 +99,6 @@ public class MemberController {
     @PostMapping("/session")
     public ResponseEntity<LoginResponseDto> login(@RequestBody LoginRequestDto loginRequestDto,
                                                   HttpServletResponse response) {
-        memberService.isCorrectMember(loginRequestDto);
         LoginResponseDto loginResponseDto = memberService.login(loginRequestDto);
         String refreshToken = loginResponseDto.getRefreshToken();
 
@@ -111,7 +110,6 @@ public class MemberController {
     }
 
     @Operation(summary = "로그아웃 API")
-    //로그아웃의 HTTP Method를 POST로 했는데, 그래서 그런지 RESTful한 이름이 떠오르지 않습니다..
     @PostMapping("/logout")
     public ResponseEntity<Void> logout(HttpServletRequest request, HttpServletResponse response) {
         String refreshToken = tokenService.extractRefreshToken(request);
