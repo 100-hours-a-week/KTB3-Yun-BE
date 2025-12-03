@@ -8,11 +8,9 @@ import KTB3.yun.Joongul.members.domain.Member;
 import KTB3.yun.Joongul.members.domain.MemberDetails;
 import KTB3.yun.Joongul.members.domain.RefreshToken;
 import KTB3.yun.Joongul.members.dto.RefreshTokenResponseDto;
-import KTB3.yun.Joongul.members.repository.MemberRepository;
 import KTB3.yun.Joongul.members.repository.RefreshTokenRepository;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
-import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,16 +21,11 @@ import java.util.Collection;
 public class TokenService {
 
     private final RefreshTokenRepository refreshTokenRepository;
-    private final MemberRepository memberRepository;
     private final JwtTokenProvider jwtTokenProvider;
-    private final AuthenticationManager authenticationManager;
 
-    public TokenService(RefreshTokenRepository refreshTokenRepository, MemberRepository memberRepository,
-                        JwtTokenProvider jwtTokenProvider, AuthenticationManager authenticationManager) {
+    public TokenService(RefreshTokenRepository refreshTokenRepository, JwtTokenProvider jwtTokenProvider) {
         this.refreshTokenRepository = refreshTokenRepository;
-        this.memberRepository = memberRepository;
         this.jwtTokenProvider = jwtTokenProvider;
-        this.authenticationManager = authenticationManager;
     }
 
     @Transactional
@@ -42,7 +35,7 @@ public class TokenService {
         }
 
         RefreshToken oldRefreshToken = refreshTokenRepository.findByRefreshTokenAndRevokedFalse(refreshToken)
-                .orElseThrow(() -> new ApplicationException(ErrorCode.NOT_FOUND, ErrorCode.NOT_FOUND.getMessage()));
+                .orElseThrow(() -> new ApplicationException(ErrorCode.TOKEN_NOT_FOUND, ErrorCode.TOKEN_NOT_FOUND.getMessage()));
 
         long now = System.currentTimeMillis();
         long refreshTokenExpireTime = oldRefreshToken.getCreatedAt() + oldRefreshToken.getExpiresAt();

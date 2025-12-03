@@ -10,6 +10,7 @@ import KTB3.yun.Joongul.members.domain.RefreshToken;
 import KTB3.yun.Joongul.members.dto.*;
 import KTB3.yun.Joongul.members.repository.MemberRepository;
 import KTB3.yun.Joongul.members.repository.RefreshTokenRepository;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -474,6 +475,8 @@ class MemberServiceTest {
         then(refreshTokenRepository).should(times(1)).deleteByRefreshToken(refreshToken);
     }
 
+    //isUsedPassword()는 통합 테스트에서 검증
+    @Disabled
     @Test
     @DisplayName("존재하지 않는 회원의 memberId를 받으면 NOT_FOUND 예외를 던진다")
     void isUsedPassword가_존재하지_않는_회원의_memberId_받으면_NOT_FOUND () {
@@ -488,6 +491,7 @@ class MemberServiceTest {
         assertEquals(ErrorCode.NOT_FOUND, ex.getErrorCode());
     }
 
+    @Disabled
     @Test
     @DisplayName("정상적인 회원의 memberId와 password를 받으면 memberId로 회원을 조회한 뒤 passwordEncoder.matches를 1번 실행한다.")
     void isUsedPassword가_정상적인_회원의_memberId와_password를_받음 () {
