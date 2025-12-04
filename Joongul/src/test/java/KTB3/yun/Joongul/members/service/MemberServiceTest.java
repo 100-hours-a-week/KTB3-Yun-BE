@@ -409,6 +409,25 @@ class MemberServiceTest {
     }
 
     @Test
+    @DisplayName("탈퇴한 회원으로 로그인 요청을 보내면 NOT_FOUND")
+    void 로그인_요청_시_탈퇴한_회원이면_NOT_FOUND_예외 () {
+        //given
+        LoginRequestDto dto = new LoginRequestDto("email", "password");
+        Member member = Member.builder()
+                .memberId(1L)
+                .email("email")
+                .password("password")
+                .nickname("nickname")
+                .isDeleted(true).build();
+        given(memberRepository.findByEmail(dto.getEmail())).willReturn(Optional.of(member));
+
+        //when
+        //then
+        ApplicationException ex = assertThrows(ApplicationException.class, () -> memberService.login(dto));
+        assertEquals(ErrorCode.NOT_FOUND, ex.getErrorCode());
+    }
+
+    @Test
     @DisplayName("로그인 요청을 보내면 authenticate(), generateToken(), save()가 한 번 실행된 뒤 LoginResponseDto를 반환한다")
     void 로그인_요청_시_authenticate_generateToken_save_실행되고_ResponseDto_반환() {
         //given

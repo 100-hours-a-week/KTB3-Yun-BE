@@ -136,6 +136,13 @@ public class MemberService {
         String email = loginRequestDto.getEmail();
         String password = loginRequestDto.getPassword();
 
+        Member member = memberRepository.findByEmail(email).orElseThrow(()
+                -> new ApplicationException(ErrorCode.NOT_FOUND, ErrorCode.NOT_FOUND.getMessage()));
+
+        if (member.getIsDeleted()) {
+            throw new ApplicationException(ErrorCode.NOT_FOUND, ErrorCode.NOT_FOUND.getMessage());
+        }
+
         UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(email, password);
         Authentication authentication = authenticationManager.authenticate(authenticationToken);
         SecurityContextHolder.getContext().setAuthentication(authentication);
