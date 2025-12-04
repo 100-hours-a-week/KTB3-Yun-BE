@@ -51,6 +51,26 @@ class MemberServiceTest {
     @InjectMocks
     private MemberService memberService;
 
+    private Member 정상_회원() {
+        return Member.builder()
+                .memberId(1L)
+                .email("email")
+                .password("password")
+                .nickname("nickname")
+                .isDeleted(false)
+                .roles(List.of("ROLE_USER")).build();
+    }
+
+    private Member 탈퇴_회원() {
+        return Member.builder()
+                .memberId(1L)
+                .email("email")
+                .password("password")
+                .nickname("nickname")
+                .isDeleted(true)
+                .roles(List.of("ROLE_USER")).build();
+    }
+
     @Test
     @DisplayName("회원가입 시 이메일이 중복이면 DUPLICATE_EMAIL 예외를 던지고 save가 호출되지 않는다")
     void 회원가입_시_중복_이메일이면_DUPLICATE_EMAIL_예외() {
@@ -137,14 +157,7 @@ class MemberServiceTest {
     void 회원조회_시_탈퇴한_회원인_경우_NOT_FOUND_예외 () {
         //given
         Long memberId = 1L;
-        Member member = Member.builder()
-                .memberId(1L)
-                .email("1")
-                .password("1")
-                .nickname("1")
-                .profileImage("")
-                .isDeleted(true)
-                .build();
+        Member member = 탈퇴_회원();
         given(memberRepository.findById(memberId))
                 .willReturn(Optional.of(member));
 
@@ -160,14 +173,7 @@ class MemberServiceTest {
     void 회원조회_시_회원이_존재하고_미탈퇴인_경우_회원정보_DTO_반환() {
         //given
         Long memberId = 1L;
-        Member member = Member.builder()
-                .memberId(memberId)
-                .email("1")
-                .password("1")
-                .nickname("1")
-                .profileImage("")
-                .isDeleted(false)
-                .build();
+        Member member = 정상_회원();
         given(memberRepository.findById(memberId)).willReturn(Optional.of(member));
 
         //when
@@ -220,14 +226,7 @@ class MemberServiceTest {
     void 회원정보_수정_시_회원이_탈퇴했다면_NOT_FOUND_예외 () {
         //given
         Long memberId = 1L;
-        Member member = Member.builder()
-                .memberId(memberId)
-                .email("1")
-                .password("1")
-                .nickname("1")
-                .profileImage("")
-                .isDeleted(true)
-                .build();
+        Member member = 탈퇴_회원();
         MemberInfoUpdateRequestDto dto = new MemberInfoUpdateRequestDto("테스트1", "");
         given(memberRepository.existsByNickname(dto.getNickname())).willReturn(false);
         given(memberRepository.findById(memberId)).willReturn(Optional.of(member));
@@ -244,20 +243,13 @@ class MemberServiceTest {
     void 회원정보_수정_시_유효성_통과_및_활성_회원이면_닉네임과_프로필_사진_수정() {
         //given
         Long memberId = 1L;
-        Member member = Member.builder()
-                .memberId(memberId)
-                .email("1")
-                .password("1")
-                .nickname("1")
-                .profileImage("")
-                .isDeleted(false)
-                .build();
+        Member member = 정상_회원();
         MemberInfoUpdateRequestDto dto = new MemberInfoUpdateRequestDto("테스트1", "123");
         given(memberRepository.existsByNickname(dto.getNickname())).willReturn(false);
         given(memberRepository.findById(memberId)).willReturn(Optional.of(member));
 
         //when
-        assertEquals("1", member.getNickname()); //수정 전
+        assertEquals("nickname", member.getNickname()); //수정 전
         memberService.updateMemberInfo(dto, memberId);
 
         //then
@@ -270,16 +262,10 @@ class MemberServiceTest {
     void 비밀번호_변경_시_기존과_같으면_USING_PASSWORD_예외 () {
         //given
         Long memberId = 1L;
-        String savedPassword = "Encoded-Password";
-        Member member = Member.builder()
-                .memberId(memberId)
-                .email("1")
-                .password(savedPassword)
-                .isDeleted(false)
-                .build();
+        Member member = 정상_회원();
         PasswordUpdateRequestDto dto = new PasswordUpdateRequestDto("123", "123");
         given(memberRepository.findById(memberId)).willReturn(Optional.of(member));
-        given(passwordEncoder.matches(dto.getPassword(), savedPassword)).willReturn(true);
+        given(passwordEncoder.matches(dto.getPassword(), member.getPassword())).willReturn(true);
 
         //when
 
@@ -293,16 +279,9 @@ class MemberServiceTest {
     void 비밀번호와_비밀번호_확인이_같지_않으면_NOT_SAME_WITH_CONFIRM_예외 () {
         //given
         Long memberId = 1L;
-        String savedPassword = "Encoded-Password";
-        Member member = Member.builder()
-                .memberId(memberId)
-                .email("1")
-                .password(savedPassword)
-                .isDeleted(false)
-                .build();
+        Member member = 정상_회원();
         PasswordUpdateRequestDto dto = new PasswordUpdateRequestDto("123", "1");
         given(memberRepository.findById(memberId)).willReturn(Optional.of(member));
-        given(passwordEncoder.matches(dto.getPassword(), savedPassword)).willReturn(false);
 
         //when
 
@@ -331,16 +310,10 @@ class MemberServiceTest {
     void 탈퇴한_사용자의_비밀번호_변경_요청_시_NOT_FOUND_예외 () {
         //given
         Long memberId = 1L;
-        String savedPassword = "Encoded-Password";
-        Member member = Member.builder()
-                .memberId(memberId)
-                .email("1")
-                .password(savedPassword)
-                .isDeleted(true)
-                .build();
+        Member member = 탈퇴_회원();
         PasswordUpdateRequestDto dto = new PasswordUpdateRequestDto("123", "123");
         given(memberRepository.findById(memberId)).willReturn(Optional.of(member));
-        given(passwordEncoder.matches(dto.getPassword(), savedPassword)).willReturn(false);
+        given(passwordEncoder.matches(dto.getPassword(), member.getPassword())).willReturn(false);
 
         //when
 
@@ -354,20 +327,13 @@ class MemberServiceTest {
     void 유효성_검사_통과_및_미탈퇴_회원인_경우_비밀번호_변경() {
         //given
         Long memberId = 1L;
-        String savedPassword = "Encoded-Password";
-        Member member = Member.builder()
-                .memberId(memberId)
-                .email("1")
-                .password(savedPassword)
-                .isDeleted(false)
-                .build();
+        Member member = 정상_회원();
         PasswordUpdateRequestDto dto = new PasswordUpdateRequestDto("123", "123");
         given(memberRepository.findById(memberId)).willReturn(Optional.of(member));
-        given(passwordEncoder.matches(dto.getPassword(), savedPassword)).willReturn(false);
+        given(passwordEncoder.matches(dto.getPassword(), member.getPassword())).willReturn(false);
         given(passwordEncoder.encode(dto.getPassword())).willReturn(dto.getPassword());
 
         //when
-        assertEquals(savedPassword, member.getPassword()); //변경 전
         memberService.modifyPassword(dto, memberId);
 
         //then
@@ -392,12 +358,7 @@ class MemberServiceTest {
     void 존재하는_회원이_탈퇴_요청_시_회원_탈퇴 () {
         //given
         Long memberId = 1L;
-        Member member = Member.builder()
-                .memberId(memberId)
-                .email("1")
-                .password("1")
-                .isDeleted(false)
-                .build();
+        Member member = 정상_회원();
         given(memberRepository.findById(memberId)).willReturn(Optional.of(member));
 
         //when
@@ -413,12 +374,7 @@ class MemberServiceTest {
     void 로그인_요청_시_탈퇴한_회원이면_NOT_FOUND_예외 () {
         //given
         LoginRequestDto dto = new LoginRequestDto("email", "password");
-        Member member = Member.builder()
-                .memberId(1L)
-                .email("email")
-                .password("password")
-                .nickname("nickname")
-                .isDeleted(true).build();
+        Member member = 탈퇴_회원();
         given(memberRepository.findByEmail(dto.getEmail())).willReturn(Optional.of(member));
 
         //when
@@ -431,19 +387,8 @@ class MemberServiceTest {
     @DisplayName("로그인 요청을 보내면 authenticate(), generateToken(), save()가 한 번 실행된 뒤 LoginResponseDto를 반환한다")
     void 로그인_요청_시_authenticate_generateToken_save_실행되고_ResponseDto_반환() {
         //given
-        Long memberId = 1L;
-        String email = "email";
-        String password = "password";
-        String nickname = "nickname";
-        List<String> roles = List.of("ROLE_USER");
-        Member member = Member.builder()
-                .memberId(memberId)
-                .email(email)
-                .password(password)
-                .nickname(nickname)
-                .isDeleted(false)
-                .roles(roles).build();
-        LoginRequestDto dto = new LoginRequestDto(email, password);
+        Member member = 정상_회원();
+        LoginRequestDto dto = new LoginRequestDto(member.getEmail(), member.getPassword());
         JwtToken token = JwtToken.builder()
                 .grantType("1")
                 .accessToken("a")
@@ -456,7 +401,7 @@ class MemberServiceTest {
         Authentication auth = new UsernamePasswordAuthenticationToken(memberDetails,
                 null, memberDetails.getAuthorities());
         ArgumentCaptor<RefreshToken> captor = ArgumentCaptor.forClass(RefreshToken.class);
-        given(memberRepository.findByEmail(email)).willReturn(Optional.of(member));
+        given(memberRepository.findByEmail(anyString())).willReturn(Optional.of(member));
         given(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class))).willReturn(auth);
         given(jwtTokenProvider.generateToken(any(Authentication.class))).willReturn(token);
 
