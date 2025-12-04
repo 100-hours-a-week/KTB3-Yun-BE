@@ -441,6 +441,7 @@ class MemberServiceTest {
                 .email(email)
                 .password(password)
                 .nickname(nickname)
+                .isDeleted(false)
                 .roles(roles).build();
         LoginRequestDto dto = new LoginRequestDto(email, password);
         JwtToken token = JwtToken.builder()
@@ -455,6 +456,7 @@ class MemberServiceTest {
         Authentication auth = new UsernamePasswordAuthenticationToken(memberDetails,
                 null, memberDetails.getAuthorities());
         ArgumentCaptor<RefreshToken> captor = ArgumentCaptor.forClass(RefreshToken.class);
+        given(memberRepository.findByEmail(email)).willReturn(Optional.of(member));
         given(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class))).willReturn(auth);
         given(jwtTokenProvider.generateToken(any(Authentication.class))).willReturn(token);
 
