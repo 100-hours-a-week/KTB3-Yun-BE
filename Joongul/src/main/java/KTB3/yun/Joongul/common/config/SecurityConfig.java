@@ -2,6 +2,7 @@ package KTB3.yun.Joongul.common.config;
 
 import KTB3.yun.Joongul.common.auth.JwtAuthenticationFilter;
 import KTB3.yun.Joongul.common.auth.JwtTokenProvider;
+import KTB3.yun.Joongul.common.exceptions.JwtAuthenticationEntryPoint;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -39,6 +40,8 @@ public class SecurityConfig {
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
+                .exceptionHandling(exception -> exception
+                        .authenticationEntryPoint(new JwtAuthenticationEntryPoint()))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.OPTIONS, "/posts/**").permitAll()
                         .requestMatchers("/members/session", "/members", "/token").permitAll()

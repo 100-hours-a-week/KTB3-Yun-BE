@@ -6,6 +6,7 @@ build/
 !**/src/test/**/build/
 settings.gradle
 application.properties
+application.yml
 
 ### STS ###
 .apt_generated

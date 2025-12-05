@@ -20,7 +20,7 @@ public class AuthService {
 
     public void checkAuthority(HttpServletRequest request, Long id) {
         Long loginId = jwtTokenProvider.extractMemberId(request);
-        if (!loginId.equals(id)) {
+        if (loginId != null && !loginId.equals(id)) {
             throw new ApplicationException(ErrorCode.FORBIDDEN_REQUEST, ErrorCode.FORBIDDEN_REQUEST.getMessage());
         }
     }
