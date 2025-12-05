@@ -123,19 +123,27 @@ class MemberServiceTest {
     }
 
     @Test
-    @DisplayName("유효성 검사를 통과한 경우, 회원가입을 시도하면 save를 한 번 호출한다")
+    @DisplayName("유효성 검사를 통과한 경우 회원가입 시도 시 새로운 Member를 생성하여 저장한다")
     void 유효성_검사_통과_후_회원가입을_시도() {
         //given
+        ArgumentCaptor<Member>  captor = ArgumentCaptor.forClass(Member.class);
         SignUpRequestDto dto = new SignUpRequestDto("test@test.com", "Test111!", "Test111!",
                 "테스트1", "");
         given(memberRepository.existsByEmail(dto.getEmail())).willReturn(false);
         given(memberRepository.existsByNickname(dto.getNickname())).willReturn(false);
+        given(passwordEncoder.encode(anyString())).willReturn("Encoded-Password");
 
         //when
         memberService.signup(dto);
 
         //then
-        then(memberRepository).should(times(1)).save(any());
+        then(memberRepository).should(times(1)).save(captor.capture());
+
+        assertEquals(dto.getEmail(), captor.getValue().getEmail());
+        assertEquals("Encoded-Password", captor.getValue().getPassword());
+        assertEquals(dto.getNickname(), captor.getValue().getNickname());
+        assertEquals(dto.getProfileImage(), captor.getValue().getProfileImage());
+
     }
 
     @Test
