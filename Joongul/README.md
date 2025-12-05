@@ -1,9 +1,9 @@
 # 당신의 읽음이 당신의 세상을 - iLGum
 > 독서 활동 기록 및 공유 커뮤니티 서비스 iLGum의 백엔드 Repository입니다.<p/>
 > Spring Boot 및 MySQL를 기반으로 구현하였습니다.<p/>
-> 사용자들은 본인이 읽은 책을 선택, 감상을 작성하고 다른 사용자와 공유할 수 있습니다.
-# 개발 인원
-|FE/BE (1인)|
+> 사용자들은 본인의 독서 감상을 작성하고 다른 사용자와 공유할 수 있습니다.
+# 개발 기간 및 인원
+|FE/BE (1인)<br>`2025.09.22 - 2025.12.07`|
 |:-----:|
 |yun.jeon(전윤철)|
 # 기술 스택
@@ -41,9 +41,8 @@
 # ERD
 <img width="1410" height="652" alt="KTB3_Week6_ERD(yun jeon)" src="https://github.com/user-attachments/assets/4e18b7b4-3bf6-491e-b7c3-a442e27bd5ae" />
 
-# 화면 구성(❗️동영상으로 변경 예정입니다.)
-<img width="1512" height="773" alt="로그인_화면" src="https://github.com/user-attachments/assets/a91cca3c-b132-498d-b4d3-b4f1903b2b7d" />
-<img width="1512" height="773" alt="게시글_목록" src="https://github.com/user-attachments/assets/988d9df5-c16b-4771-ae44-b1c8cb5e3e9d" />
-<img width="1512" height="773" alt="게시글_상세" src="https://github.com/user-attachments/assets/adebd06d-8d71-420b-88b0-fe3bc1416e78" />
-<img width="1512" height="773" alt="게시글_작성" src="https://github.com/user-attachments/assets/af0ca9c5-064b-4584-b296-4485d6b7ab5e" />
-<img width="1512" height="773" alt="마이페이지" src="https://github.com/user-attachments/assets/b0be1c8c-efc4-4933-a4c7-b2115eeb742b" />
+# 시연 영상
+https://github.com/user-attachments/assets/3222bc68-95fa-433d-8812-01dcfd223406
+
+
+
