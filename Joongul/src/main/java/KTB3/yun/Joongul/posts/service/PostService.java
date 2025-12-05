@@ -31,9 +31,8 @@ public class PostService {
     }
 
     public List<PostSimpleResponseDto> getAllPosts() {
-        return postRepository.findAll()
+        return postRepository.findAllByIsDeletedFalse()
                 .stream()
-                .filter(post -> !post.getIsDeleted())
                 .map(PostSimpleResponseDto::from)
                 .toList();
     }
