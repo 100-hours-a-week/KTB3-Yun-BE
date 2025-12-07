@@ -25,9 +25,12 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 
 import static io.restassured.RestAssured.given;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.equalTo;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class PostIntegrationTest {
@@ -156,7 +159,7 @@ public class PostIntegrationTest {
         PostWriteRequestDto postReq = new PostWriteRequestDto("제목", "내용", null);
 
 
-        given().log().all()
+        Long postId = given().log().all()
                 .contentType(ContentType.JSON)
                 .header("Authorization", "Bearer " + accessToken)
                 .body(postReq)
@@ -166,7 +169,14 @@ public class PostIntegrationTest {
                 .statusCode(201)
                 .body("data.title", equalTo(postReq.getTitle()))
                 .body("data.content", equalTo(postReq.getContent()))
-                .body("data.nickname", equalTo(member.getNickname()));
+                .body("data.nickname", equalTo(member.getNickname()))
+                .extract().jsonPath().getLong("data.postId");
+
+        Post newPost = postRepository.findById(postId).orElseThrow();
+
+        assertEquals(postReq.getTitle(), newPost.getTitle());
+        assertEquals(postReq.getContent(), newPost.getContent());
+        assertEquals(member.getNickname(), newPost.getNickname());
     }
 
     @Test
@@ -221,6 +231,13 @@ public class PostIntegrationTest {
                 .body("data.title", equalTo(updateReq.getTitle()))
                 .body("data.content", equalTo(updateReq.getContent()))
                 .body("data.postImage", equalTo(updateReq.getPostImage()));
+
+        Post updatedPost = postRepository.findById(post1.getPostId()).orElseThrow();
+
+        assertEquals(updateReq.getTitle(), updatedPost.getTitle());
+        assertEquals(updateReq.getContent(), updatedPost.getContent());
+        assertEquals(updateReq.getPostImage(), updatedPost.getPostImage());
+        assertEquals(member.getNickname(), updatedPost.getNickname());
     }
 
     @Test
@@ -304,6 +321,9 @@ public class PostIntegrationTest {
                 .delete("/posts/{id}", post1.getPostId())
                 .then().log().all()
                 .statusCode(204);
+
+        Optional<Post> deletedPost = postRepository.findById(post1.getPostId());
+        assertThat(deletedPost).isEmpty();
     }
 
     @Test
