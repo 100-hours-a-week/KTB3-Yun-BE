@@ -9,6 +9,7 @@ import KTB3.yun.Joongul.common.dto.ApiResponseDto;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -28,7 +29,7 @@ public class CommentController {
     @Operation(summary = "댓글 작성 API")
     @PostMapping
     public ResponseEntity<ApiResponseDto<CommentResponseDto>> writeComment(@PathVariable(name = "postId") Long postId,
-                                                                           @RequestBody CommentWriteRequestDto dto,
+                                                                           @RequestBody @Valid CommentWriteRequestDto dto,
                                                                            HttpServletRequest request) {
         Long memberId = authService.getMemberId(request);
         CommentResponseDto comment = commentService.writeComment(postId, dto, memberId);
@@ -40,7 +41,7 @@ public class CommentController {
     @PutMapping("/{commentId}")
     public ResponseEntity<ApiResponseDto<CommentResponseDto>> updateComment(@PathVariable(name = "postId") Long postId,
                                                                             @PathVariable(name = "commentId") Long commentId,
-                                                                            @RequestBody CommentUpdateRequestDto dto,
+                                                                            @RequestBody @Valid CommentUpdateRequestDto dto,
                                                                             HttpServletRequest request) {
         Long memberId = commentService.getMemberId(commentId);
         authService.checkAuthority(request, memberId);
