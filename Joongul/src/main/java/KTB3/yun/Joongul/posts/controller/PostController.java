@@ -32,15 +32,14 @@ public class PostController {
 
     @Operation(summary = "게시글 목록 조회 API")
     @GetMapping
-    public ResponseEntity<ApiResponseDto<List<PostSimpleResponseDto>>> getPostList(HttpServletRequest request) {
+    public ResponseEntity<ApiResponseDto<List<PostSimpleResponseDto>>> getPostList() {
         List<PostSimpleResponseDto> postsList = postService.getAllPosts();
         return ResponseEntity.status(HttpStatus.OK).body(new ApiResponseDto<>("posts_list_success", postsList));
     }
 
     @Operation(summary = "게시글 단건 상세 조회 API")
     @GetMapping("/{id}")
-    public ResponseEntity<ApiResponseDto<PostDetailResponseDto>> getPostDetail(@PathVariable(name = "id") Long postId,
-                                                               HttpServletRequest request) {
+    public ResponseEntity<ApiResponseDto<PostDetailResponseDto>> getPostDetail(@PathVariable(name = "id") Long postId) {
         PostDetailResponseDto post = postService.getDetailPost(postId);
         return ResponseEntity.status(HttpStatus.OK).body(new ApiResponseDto<>("post_detail_success", post));
     }

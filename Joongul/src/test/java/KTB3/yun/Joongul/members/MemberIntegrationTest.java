@@ -1,4 +1,4 @@
-package KTB3.yun.Joongul.members.service;
+package KTB3.yun.Joongul.members;
 
 import KTB3.yun.Joongul.global.utils.DatabaseCleanup;
 import KTB3.yun.Joongul.members.domain.Member;
@@ -7,6 +7,7 @@ import KTB3.yun.Joongul.members.dto.MemberInfoUpdateRequestDto;
 import KTB3.yun.Joongul.members.dto.PasswordUpdateRequestDto;
 import KTB3.yun.Joongul.members.dto.SignUpRequestDto;
 import KTB3.yun.Joongul.members.repository.MemberRepository;
+import KTB3.yun.Joongul.members.service.MemberService;
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
 import org.junit.jupiter.api.AfterEach;

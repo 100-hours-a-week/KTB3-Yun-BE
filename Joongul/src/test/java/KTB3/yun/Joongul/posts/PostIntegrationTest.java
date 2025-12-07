@@ -1,0 +1,374 @@
+package KTB3.yun.Joongul.posts;
+
+import KTB3.yun.Joongul.common.auth.JwtTokenProvider;
+import KTB3.yun.Joongul.common.dto.JwtToken;
+import KTB3.yun.Joongul.global.utils.DatabaseCleanup;
+import KTB3.yun.Joongul.members.domain.Member;
+import KTB3.yun.Joongul.members.repository.MemberRepository;
+import KTB3.yun.Joongul.posts.domain.Post;
+import KTB3.yun.Joongul.posts.dto.PostUpdateRequestDto;
+import KTB3.yun.Joongul.posts.dto.PostWriteRequestDto;
+import KTB3.yun.Joongul.posts.repository.PostRepository;
+import io.restassured.RestAssured;
+import io.restassured.http.ContentType;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.web.server.LocalServerPort;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.crypto.password.PasswordEncoder;
+
+import java.time.LocalDateTime;
+import java.util.Collection;
+import java.util.List;
+
+import static io.restassured.RestAssured.given;
+import static org.hamcrest.Matchers.equalTo;
+
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+public class PostIntegrationTest {
+
+    @LocalServerPort
+    private int port;
+
+    @Autowired
+    private DatabaseCleanup databaseCleanup;
+    @Autowired
+    private PostRepository postRepository;
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+    @Autowired
+    private JwtTokenProvider jwtTokenProvider;
+    @Autowired
+    private MemberRepository memberRepository;
+
+    @BeforeEach
+    public void setUp() {
+        RestAssured.port = port;
+    }
+
+    @AfterEach
+    public void tearDown() {
+        databaseCleanup.execute();
+    }
+
+    @Test
+    @DisplayName("로그인하지 않은 사용자는 게시글 목록 조회 시 401 오류가 발생한다")
+    void 비로그인_사용자_게시글_목록_조회_시_401 () {
+        given().log().all()
+                .when()
+                .get("/posts")
+                .then().log().all()
+                .statusCode(401);
+    }
+
+    @Test
+    @DisplayName("로그인한 사용자는 게시글 목록을 조회할 수 있다")
+    void 로그인_사용자_게시글_목록_조회_성공() {
+
+        Member member = saveMember("test@test.com", "Test111!", "테스터");
+        String accessToken = getAccessToken(member);
+        Post post1 = savePost("제목1", "내용1", member);
+        Post post2 = savePost("제목2", "내용2", member);
+
+        given().log().all()
+                .header("Authorization", "Bearer " + accessToken)
+                .when()
+                .get("/posts")
+                .then().log().all()
+                .statusCode(200)
+                .body("data.size()", equalTo(2))
+                .body("data[0].title", equalTo(post1.getTitle()))
+                .body("data[0].nickname", equalTo(post1.getNickname()))
+                .body("data[1].title", equalTo(post2.getTitle()))
+                .body("data[1].nickname", equalTo(post2.getNickname()));
+    }
+
+    @Test
+    @DisplayName("로그인하지 않은 사용자는 게시글 상세 조회 시 401 오류가 발생한다")
+    void 비로그인_사용자_게시글_상세_조회_시_401() {
+        Member member = saveMember("test@test.com", "Test111!", "테스터");
+        Post post1 = savePost("제목1", "내용1", member);
+
+        given().log().all()
+                .when()
+                .get("/posts/{id}", post1.getPostId())
+                .then().log().all()
+                .statusCode(401);
+    }
+
+    @Test
+    @DisplayName("로그인한 사용자는 게시글을 상세 조회할 수 있다")
+    void 로그인_사용자_게시글_상세_조회_성공() {
+        Member member = saveMember("test@test.com", "Test111!", "테스터");
+        String accessToken = getAccessToken(member);
+        Post post1 = savePost("제목1", "내용1", member);
+
+        given().log().all()
+                .header("Authorization", "Bearer " + accessToken)
+                .when()
+                .get("/posts/{id}", post1.getPostId())
+                .then().log().all()
+                .statusCode(200)
+                .body("data.postId", equalTo((Number) post1.getPostId().intValue()))
+                .body("data.title", equalTo(post1.getTitle()))
+                .body("data.nickname", equalTo(post1.getNickname()))
+                .body("data.content", equalTo(post1.getContent()));
+    }
+
+    @Test
+    @DisplayName("존재하지 않는 게시글을 조회할 경우 404 오류가 발생한다")
+    void 존재하지_않는_게시글_조회_시_404() {
+        Member member = saveMember("test@test.com", "Test111!", "테스터");
+        String accessToken = getAccessToken(member);
+
+        given().log().all()
+                .header("Authorization", "Bearer " + accessToken)
+                .when()
+                .get("/posts/{id}", 1L)
+                .then().log().all()
+                .statusCode(404);
+    }
+
+    @Test
+    @DisplayName("로그인하지 않은 사용자는 게시글 작성 시 401 오류가 발생한다")
+    void 비로그인_사용자_게시글_작성_시_401() {
+        PostWriteRequestDto postReq = new PostWriteRequestDto("제목", "내용", null);
+
+        given().log().all()
+                .contentType(ContentType.JSON)
+                .body(postReq)
+                .when()
+                .post("/posts")
+                .then().log().all()
+                .statusCode(401);
+    }
+
+    @Test
+    @DisplayName("로그인한 사용자는 게시글을 작성할 수 있다")
+    void 로그인_사용자_게시글_작성_성공() {
+        Member member = saveMember("test@test.com", "Test111!", "테스터");
+        String accessToken = getAccessToken(member);
+        PostWriteRequestDto postReq = new PostWriteRequestDto("제목", "내용", null);
+
+
+        given().log().all()
+                .contentType(ContentType.JSON)
+                .header("Authorization", "Bearer " + accessToken)
+                .body(postReq)
+                .when()
+                .post("/posts")
+                .then().log().all()
+                .statusCode(201)
+                .body("data.title", equalTo(postReq.getTitle()))
+                .body("data.content", equalTo(postReq.getContent()))
+                .body("data.nickname", equalTo(member.getNickname()));
+    }
+
+    @Test
+    @DisplayName("작성할 게시글의 제목이나 내용이 유효하지 않은 경우 400 오류가 발생한다")
+    void 유효하지_않은_제목이나_내용으로_작성_시_400() {
+        Member member = saveMember("test@test.com", "Test111!", "테스터");
+        String accessToken = getAccessToken(member);
+        PostWriteRequestDto postReq = new PostWriteRequestDto("제목", "", null);
+
+        given().log().all()
+                .contentType(ContentType.JSON)
+                .header("Authorization", "Bearer " + accessToken)
+                .body(postReq)
+                .when()
+                .post("/posts")
+                .then().log().all()
+                .statusCode(400);
+    }
+
+    @Test
+    @DisplayName("로그인하지 않은 사용자는 게시글 수정 시 401 오류가 발생한다")
+    void 비로그인_사용자_게시글_수정_시_401() {
+        Member member = saveMember("test@test.com", "Test111!", "테스터");
+        Post post1 = savePost("제목1", "내용1", member);
+        PostUpdateRequestDto updateReq = new PostUpdateRequestDto("제목1", "수정", null);
+
+        given().log().all()
+                .contentType(ContentType.JSON)
+                .body(updateReq)
+                .when()
+                .put("/posts/{id}", post1.getPostId())
+                .then().log().all()
+                .statusCode(401);
+    }
+
+    @Test
+    @DisplayName("로그인한 사용자는 본인의 게시글을 수정할 수 있다")
+    void 로그인_사용자_본인_게시글_수정_성공() {
+        Member member = saveMember("test@test.com", "Test111!", "테스터");
+        String accessToken = getAccessToken(member);
+        Post post1 = savePost("제목1", "내용1", member);
+        PostUpdateRequestDto updateReq = new PostUpdateRequestDto("제목 수정", "내용 수정", "이미지 수정");
+
+        given().log().all()
+                .contentType(ContentType.JSON)
+                .header("Authorization", "Bearer " + accessToken)
+                .body(updateReq)
+                .when()
+                .put("/posts/{id}", post1.getPostId())
+                .then().log().all()
+                .statusCode(200)
+                .body("data.title", equalTo(updateReq.getTitle()))
+                .body("data.content", equalTo(updateReq.getContent()))
+                .body("data.postImage", equalTo(updateReq.getPostImage()));
+    }
+
+    @Test
+    @DisplayName("다른 사용자의 게시글 수정 시도 시 403 오류가 발생한다")
+    void 다른_사용자_게시글_수정_시_403() {
+        Member member = saveMember("test@test.com", "Test111!", "테스터");
+        Post post1 = savePost("제목1", "내용1", member);
+        PostUpdateRequestDto updateReq = new PostUpdateRequestDto("제목1", "수정", null);
+
+        Member anotherMember = saveMember("another@test.com", "Test111!", "다른테스터");
+        String accessToken = getAccessToken(anotherMember);
+
+        given().log().all()
+                .contentType(ContentType.JSON)
+                .header("Authorization", "Bearer " + accessToken)
+                .body(updateReq)
+                .when()
+                .put("/posts/{id}", post1.getPostId())
+                .then().log().all()
+                .statusCode(403);
+    }
+
+    @Test
+    @DisplayName("존재하지 않는 게시글 수정 시도 시 404 오류가 발생한다")
+    void 존재하지_않는_게시글_수정_시_404() {
+        Member member = saveMember("test@test.com", "Test111!", "테스터");
+        String accessToken = getAccessToken(member);
+        PostUpdateRequestDto updateReq = new PostUpdateRequestDto("제목 수정", "내용 수정", "이미지 수정");
+
+        given().log().all()
+                .contentType(ContentType.JSON)
+                .header("Authorization", "Bearer " + accessToken)
+                .body(updateReq)
+                .when()
+                .put("/posts/{id}", 1L)
+                .then().log().all()
+                .statusCode(404);
+    }
+
+    @Test
+    @DisplayName("수정할 제목이나 내용이 유효하지 않은 경우 400 오류가 발생한다")
+    void 유호하지_않은_제목이나_내용으로_수정_시_400() {
+        Member member = saveMember("test@test.com", "Test111!", "테스터");
+        Post post1 = savePost("제목1", "내용1", member);
+        String accessToken = getAccessToken(member);
+        PostUpdateRequestDto updateReq = new PostUpdateRequestDto("제목 수정", "", "이미지 수정");
+
+        given().log().all()
+                .contentType(ContentType.JSON)
+                .header("Authorization", "Bearer " + accessToken)
+                .body(updateReq)
+                .when()
+                .put("/posts/{id}",  post1.getPostId())
+                .then().log().all()
+                .statusCode(400);
+    }
+
+    @Test
+    @DisplayName("로그인하지 않은 사용자가 게시글 삭제 시 401 오류가 발생한다")
+    void 비로그인_사용자_게시글_삭제_실패() {
+        Member member = saveMember("test@test.com", "Test111!", "테스터");
+        Post post1 = savePost("제목1", "내용1", member);
+
+        given().log().all()
+                .when()
+                .delete("/posts/{id}", post1.getPostId())
+                .then().log().all()
+                .statusCode(401);
+    }
+
+    @Test
+    @DisplayName("로그인한 사용자는 본인의 게시글 삭제에 성공한다")
+    void 로그인_사용자_게시글_삭제_성공() {
+        Member member = saveMember("test@test.com", "Test111!", "테스터");
+        Post post1 = savePost("제목1", "내용1", member);
+        String accessToken = getAccessToken(member);
+
+        given().log().all()
+                .header("Authorization", "Bearer " + accessToken)
+                .when()
+                .delete("/posts/{id}", post1.getPostId())
+                .then().log().all()
+                .statusCode(204);
+    }
+
+    @Test
+    @DisplayName("다른 사용자의 게시글 삭제 시도 시 403 오류가 발생한다")
+    void 다른_사용자_게시글_삭제_시_403() {
+        Member member = saveMember("test@test.com", "Test111!", "테스터");
+        Post post1 = savePost("제목1", "내용1", member);
+
+        Member anotherMember = saveMember("another@test.com", "Test111!", "다른테스터");
+        String accessToken = getAccessToken(anotherMember);
+
+        given().log().all()
+                .header("Authorization", "Bearer " + accessToken)
+                .when()
+                .delete("/posts/{id}", post1.getPostId())
+                .then().log().all()
+                .statusCode(403);
+    }
+
+    @Test
+    @DisplayName("존재하지 않는 게시글을 삭제 시도 시 404 오류가 발생한다")
+    void 존재하지_않는_게시글_삭제_시_404() {
+        Member member = saveMember("test@test.com", "Test111!", "테스터");
+        String accessToken = getAccessToken(member);
+
+        given().log().all()
+                .header("Authorization", "Bearer " + accessToken)
+                .when()
+                .delete("/posts/{id}", 1L)
+                .then().log().all()
+                .statusCode(404);
+    }
+
+    private Member saveMember(String email, String password, String nickname) {
+        Member member = Member.builder()
+                .email(email)
+                .password(passwordEncoder.encode(password))
+                .nickname(nickname)
+                .roles(List.of("ROLE_USER"))
+                .isDeleted(false)
+                .build();
+
+        return memberRepository.save(member);
+    }
+
+    private String getAccessToken(Member member) {
+        List<String> roles = member.getRoles();
+        Collection<? extends GrantedAuthority> authorities = roles.stream()
+                .map(SimpleGrantedAuthority::new).toList();
+        JwtToken jwt = jwtTokenProvider.generateJwt(member.getEmail(), authorities);
+        return jwt.getAccessToken();
+    }
+
+    private Post savePost(String title, String content, Member member) {
+        Post post = Post.builder()
+                .title(title)
+                .content(content)
+                .nickname(member.getNickname())
+                .likes(0)
+                .comments(0)
+                .views(0)
+                .createdAt(LocalDateTime.now())
+                .isDeleted(false)
+                .member(member).build();
+        return postRepository.save(post);
+    }
+
+}
