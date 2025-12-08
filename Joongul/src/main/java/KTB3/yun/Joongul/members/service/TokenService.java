@@ -41,7 +41,7 @@ public class TokenService {
         long refreshTokenExpireTime = oldRefreshToken.getCreatedAt() + oldRefreshToken.getExpiresAt();
 
         if (refreshTokenExpireTime <= now) {
-            throw new ApplicationException(ErrorCode.INVALID_TOKEN, ErrorCode.INVALID_TOKEN.getMessage());
+            throw new ApplicationException(ErrorCode.EXPIRED_TOKEN, ErrorCode.EXPIRED_TOKEN.getMessage());
         }
 
         Member member = oldRefreshToken.getMember();
@@ -59,7 +59,7 @@ public class TokenService {
                 .revoked(false)
                 .build();
 
-        refreshTokenRepository.deleteByRefreshToken(refreshToken);
+        refreshTokenRepository.delete(oldRefreshToken);
         refreshTokenRepository.save(newRefreshToken);
 
 
@@ -69,6 +69,10 @@ public class TokenService {
 
     public String extractRefreshToken(HttpServletRequest request) {
         Cookie[] cookies = request.getCookies();
+
+        if (cookies == null) {
+            return "not_found";
+        }
 
         for (Cookie cookie : cookies) {
             if ("refreshToken".equals(cookie.getName())) {

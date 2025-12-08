@@ -19,6 +19,7 @@ public enum ErrorCode {
     DUPLICATE_NICKNAME(HttpStatus.CONFLICT, "중복된 닉네임입니다."),
     USING_PASSWORD(HttpStatus.UNPROCESSABLE_ENTITY, "이미 사용 중인 비밀번호입니다."),
     INVALID_TOKEN(HttpStatus.UNAUTHORIZED, "유효하지 않은 토큰입니다"),
+    EXPIRED_TOKEN(HttpStatus.UNAUTHORIZED, "만료된 토큰입니다"),
     BAD_LIKE_REQUEST(HttpStatus.BAD_REQUEST, "좋아요를 누르지 않았습니다.");
 
     private final HttpStatusCode status;

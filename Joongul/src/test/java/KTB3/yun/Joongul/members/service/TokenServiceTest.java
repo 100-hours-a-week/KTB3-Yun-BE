@@ -85,7 +85,7 @@ class TokenServiceTest {
         //when
         //then
         ApplicationException ex = assertThrows(ApplicationException.class, () -> tokenService.getNewToken(refreshToken));
-        assertEquals(ErrorCode.INVALID_TOKEN, ex.getErrorCode());
+        assertEquals(ErrorCode.EXPIRED_TOKEN, ex.getErrorCode());
     }
 
     @Test
@@ -126,7 +126,7 @@ class TokenServiceTest {
         RefreshTokenResponseDto dto = tokenService.getNewToken(oldRefreshToken);
 
         //then
-        then(refreshTokenRepository).should(times(1)).deleteByRefreshToken(oldRefreshToken);
+        then(refreshTokenRepository).should(times(1)).delete(oldRefreshTokenEntity);
         then(refreshTokenRepository).should(times(1)).save(captor.capture());
 
         assertEquals(jwtToken.getAccessToken(), dto.getAccessToken());
