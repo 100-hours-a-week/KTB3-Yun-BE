@@ -125,7 +125,7 @@ public class MemberIntegrationTest {
     @Test
     @DisplayName("회원가입 폼의 이메일 유효성 검사를 통과하지 못한 경우 400 에러가 발생한다")
     void 회원가입_폼_이메일_유효성_검사_통과_실패() {
-        SignUpRequestDto req = new SignUpRequestDto("test123@test.com", "Test123!", "Test123!", "테스터1", null);
+        SignUpRequestDto req = new SignUpRequestDto("wrong_email", "Test123!", "Test123!", "테스터1", null);
 
         given().log().all()
                 .contentType(ContentType.JSON)
