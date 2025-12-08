@@ -46,7 +46,7 @@ public class LikeService {
                 .orElseThrow(() -> new ApplicationException(ErrorCode.NOT_FOUND, ErrorCode.NOT_FOUND.getMessage()));
 
         Like like = likeRepository.findByPost_PostIdAndMember_MemberId(postId, memberId)
-                .orElseThrow(() -> new ApplicationException(ErrorCode.NOT_FOUND, ErrorCode.NOT_FOUND.getMessage()));
+                .orElseThrow(() -> new ApplicationException(ErrorCode.BAD_LIKE_REQUEST, ErrorCode.BAD_LIKE_REQUEST.getMessage()));
 
         likeRepository.delete(like);
         post.decreaseLikes();

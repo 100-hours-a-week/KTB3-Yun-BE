@@ -4,6 +4,7 @@ import KTB3.yun.Joongul.comments.controller.CommentController;
 import KTB3.yun.Joongul.likes.controller.LikeController;
 import KTB3.yun.Joongul.members.controller.MemberController;
 import KTB3.yun.Joongul.posts.controller.PostController;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -34,5 +35,11 @@ public class GlobalExceptionHandler {
             errors.put(fieldError.getField(), fieldError.getDefaultMessage());
         });
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errors);
+    }
+
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<CustomErrorResponse> handleDataIntegrityViolationException(DataIntegrityViolationException ex) {
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(new CustomErrorResponse(HttpStatus.CONFLICT.value(), "이미 처리된 요청이거나 중복된 데이터입니다."));
     }
 }

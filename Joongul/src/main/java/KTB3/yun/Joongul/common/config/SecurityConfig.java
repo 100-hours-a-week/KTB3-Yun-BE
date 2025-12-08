@@ -44,7 +44,7 @@ public class SecurityConfig {
                         .authenticationEntryPoint(new JwtAuthenticationEntryPoint()))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.OPTIONS, "/posts/**").permitAll()
-                        .requestMatchers("/members/session", "/members", "/token").permitAll()
+                        .requestMatchers("/members/session", "/members", "/token", "/error").permitAll()
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(new JwtAuthenticationFilter(jwtTokenProvider),
