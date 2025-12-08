@@ -138,6 +138,32 @@ public class PostIntegrationTest {
     }
 
     @Test
+    @DisplayName("삭제된 게시글을 조회할 경우 404 오류가 발생한다")
+    void 삭제된_게시글_조회_시_404() {
+        Member member = saveMember("test@test.com", "Test111!", "테스터");
+        String accessToken = getAccessToken(member);
+        Post deletedPost = Post.builder()
+                .title("1")
+                .nickname(member.getNickname())
+                .content("1")
+                .likes(0)
+                .comments(0)
+                .views(0)
+                .createdAt(LocalDateTime.now())
+                .isDeleted(true)
+                .member(member).build();
+
+        postRepository.save(deletedPost);
+
+        given().log().all()
+                .header("Authorization", "Bearer " + accessToken)
+                .when()
+                .get("/posts/{id}", deletedPost.getPostId())
+                .then().log().all()
+                .statusCode(404);
+    }
+
+    @Test
     @DisplayName("로그인하지 않은 사용자는 게시글 작성 시 401 오류가 발생한다")
     void 비로그인_사용자_게시글_작성_시_401() {
         PostWriteRequestDto postReq = new PostWriteRequestDto("제목", "내용", null);
@@ -273,6 +299,36 @@ public class PostIntegrationTest {
                 .body(updateReq)
                 .when()
                 .put("/posts/{id}", 1L)
+                .then().log().all()
+                .statusCode(404);
+    }
+
+    @Test
+    @DisplayName("삭제된 게시글 수정 시도 시 404 오류가 발생한다")
+    void 삭제된_게시글_수정_시_404() {
+        Member member = saveMember("test@test.com", "Test111!", "테스터");
+        String accessToken = getAccessToken(member);
+        Post deletedPost = Post.builder()
+                .title("1")
+                .nickname(member.getNickname())
+                .content("1")
+                .likes(0)
+                .comments(0)
+                .views(0)
+                .createdAt(LocalDateTime.now())
+                .isDeleted(true)
+                .member(member).build();
+
+        postRepository.save(deletedPost);
+
+        PostUpdateRequestDto updateReq = new PostUpdateRequestDto("제목 수정", "내용 수정", "이미지 수정");
+
+        given().log().all()
+                .contentType(ContentType.JSON)
+                .header("Authorization", "Bearer " + accessToken)
+                .body(updateReq)
+                .when()
+                .put("/posts/{id}", deletedPost.getPostId())
                 .then().log().all()
                 .statusCode(404);
     }
