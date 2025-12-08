@@ -123,6 +123,66 @@ public class MemberIntegrationTest {
     }
 
     @Test
+    @DisplayName("회원가입 폼의 이메일 유효성 검사를 통과하지 못한 경우 400 에러가 발생한다")
+    void 회원가입_폼_이메일_유효성_검사_통과_실패() {
+        SignUpRequestDto req = new SignUpRequestDto("test123@test.com", "Test123!", "Test123!", "테스터1", null);
+
+        given().log().all()
+                .contentType(ContentType.JSON)
+                .body(req)
+                .when()
+                .post("/members")
+                .then().log().all()
+                .statusCode(400)
+                .body("email", equalTo("올바른 이메일 주소 형식을 입력해주세요.(예: example@example.com)"));
+    }
+
+    @Test
+    @DisplayName("회원가입 폼의 비밀번호 유효성 검사를 통과하지 못한 경우 400 에러가 발생한다")
+    void 회원가입_폼_비밀번호_유효성_검사_통과_실패() {
+        SignUpRequestDto req = new SignUpRequestDto("test@test.com", "t", "Test123!", "테스터1", null);
+
+        given().log().all()
+                .contentType(ContentType.JSON)
+                .body(req)
+                .when()
+                .post("/members")
+                .then().log().all()
+                .statusCode(400)
+                .body("password", equalTo("비밀번호는 8자 이상 20자 이하이며, 대문자, 소문자, 숫자, 특수문자를 각각 최소 1개 포함해야 합니다."));
+    }
+
+    @Test
+    @DisplayName("회원가입 폼의 닉네임 유효성 검사(띄어쓰기)를 통과하지 못한 경우 400 에러가 발생한다")
+    void 회원가입_폼_닉네임_띄어쓰기_있으면_실패() {
+        SignUpRequestDto req = new SignUpRequestDto("test@test.com", "Test123!", "Test123!", "테 스터", null);
+
+        given().log().all()
+                .contentType(ContentType.JSON)
+                .body(req)
+                .when()
+                .post("/members")
+                .then().log().all()
+                .statusCode(400)
+                .body("nickname", equalTo("띄어쓰기를 없애주세요."));
+    }
+
+    @Test
+    @DisplayName("회원가입 폼의 닉네임 유효성 검사(열 글자 이하)를 통과하지 못한 경우 400 에러가 발생한다")
+    void 회원가입_폼_닉네임_열_글자_넘으면_실패() {
+        SignUpRequestDto req = new SignUpRequestDto("test@test.com", "Test123!", "Test123!", "열글자가넘는테스트이름입니다", null);
+
+        given().log().all()
+                .contentType(ContentType.JSON)
+                .body(req)
+                .when()
+                .post("/members")
+                .then().log().all()
+                .statusCode(400)
+                .body("nickname", equalTo("닉네임은 최대 10자까지 작성 가능합니다."));
+    }
+
+    @Test
     @DisplayName("로그인하지 않은 사용자가 회원 정보 수정을 요청하면 401 에러가 발생한다")
     void 비로그인_회원_정보_수정_요청_시_실패() {
         MemberInfoUpdateRequestDto updateReq = new MemberInfoUpdateRequestDto("닉네임", "이미지");
@@ -184,6 +244,45 @@ public class MemberIntegrationTest {
     }
 
     @Test
+    @DisplayName("열 글자가 넘는 닉네임으로 회원 정보를 수정하면 400 에러가 발생한다")
+    void 열_글자_초과_닉네임으로_수정_시_400() {
+        String accessToken = signUpAndLogin("test@test.com", "Test111!", "테스터");
+        MemberInfoUpdateRequestDto updateReq = new MemberInfoUpdateRequestDto("열글자가넘는테스트이름입니다", "이미지");
+        Long memberId = memberRepository.findByEmail("test@test.com").orElseThrow(() -> new RuntimeException("멤버 없음"))
+                .getMemberId();
+
+        given().log().all()
+                .header("Authorization", "Bearer " + accessToken)
+                .contentType(ContentType.JSON)
+                .body(updateReq)
+                .when()
+                .put("/members/{id}", memberId)
+                .then().log().all()
+                .statusCode(400)
+                .body("nickname", equalTo("닉네임은 최대 10자까지 작성 가능합니다."));
+    }
+
+    @Test
+    @DisplayName("띄어쓰기가 있는 닉네임으로 회원 정보를 수정하면 400 에러가 발생한다")
+    void 띄어쓰기_있는_닉네임으로_수정_시_400() {
+        String accessToken = signUpAndLogin("test@test.com", "Test111!", "테스터");
+        MemberInfoUpdateRequestDto updateReq = new MemberInfoUpdateRequestDto("테 스터", "이미지");
+        Long memberId = memberRepository.findByEmail("test@test.com").orElseThrow(() -> new RuntimeException("멤버 없음"))
+                .getMemberId();
+
+        given().log().all()
+                .header("Authorization", "Bearer " + accessToken)
+                .contentType(ContentType.JSON)
+                .body(updateReq)
+                .when()
+                .put("/members/{id}", memberId)
+                .then().log().all()
+                .statusCode(400)
+                .body("nickname", equalTo("띄어쓰기를 없애주세요."));
+    }
+
+
+    @Test
     @DisplayName("로그인하지 않은 사용자가 비밀번호 변경을 요청하면 401 에러가 발생한다")
     void 비로그인_비밀번호_변경_요청_시_실패() {
         PasswordUpdateRequestDto updateReq = new PasswordUpdateRequestDto("NewPw123!", "NewPw123!");
@@ -243,6 +342,46 @@ public class MemberIntegrationTest {
         boolean isMatched = passwordEncoder.matches("Test123!", updatedMember.getPassword());
 
         assertTrue(isMatched);
+    }
+
+    @Test
+    @DisplayName("기존에 사용하던 비밀번호로 변경 요청 시 422 에러가 발생한다")
+    void 기존_비밀번호로_변경_시_400() {
+        String accessToken = signUpAndLogin("test@test.com", "Test111!", "테스터");
+        PasswordUpdateRequestDto updateReq = new PasswordUpdateRequestDto("Test111!", "Test111!");
+        Long memberId = memberRepository.findByEmail("test@test.com").orElseThrow(() -> new RuntimeException("멤버 없음"))
+                .getMemberId();
+
+        given().log().all()
+                .header("Authorization", "Bearer " + accessToken)
+                .cookie("refreshToken", "dummy")
+                .contentType(ContentType.JSON)
+                .body(updateReq)
+                .when()
+                .patch("/members/{id}", memberId)
+                .then().log().all()
+                .statusCode(422)
+                .body("message", equalTo("이미 사용 중인 비밀번호입니다."));
+    }
+
+    @Test
+    @DisplayName("유효하지 않은 비밀번호(틀린 형식)로 변경 요청 시 400 에러가 발생한다")
+    void 형식이_틀린_비밀번호로_변경_시_400() {
+        String accessToken = signUpAndLogin("test@test.com", "Test111!", "테스터");
+        PasswordUpdateRequestDto updateReq = new PasswordUpdateRequestDto("test", "test");
+        Long memberId = memberRepository.findByEmail("test@test.com").orElseThrow(() -> new RuntimeException("멤버 없음"))
+                .getMemberId();
+
+        given().log().all()
+                .header("Authorization", "Bearer " + accessToken)
+                .cookie("refreshToken", "dummy")
+                .contentType(ContentType.JSON)
+                .body(updateReq)
+                .when()
+                .patch("/members/{id}", memberId)
+                .then().log().all()
+                .statusCode(400)
+                .body("password", equalTo("비밀번호는 8자 이상 20자 이하이며, 대문자, 소문자, 숫자, 특수문자를 각각 최소 1개 포함해야 합니다."));
     }
 
     @Test
