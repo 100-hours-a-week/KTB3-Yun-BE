@@ -9,23 +9,24 @@ import KTB3.yun.Joongul.members.dto.SignUpRequestDto;
 import KTB3.yun.Joongul.members.repository.MemberRepository;
 import KTB3.yun.Joongul.members.service.MemberService;
 import io.restassured.http.ContentType;
+import jakarta.servlet.http.Cookie;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
-import static io.restassured.module.mockmvc.RestAssuredMockMvc.given;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 public class MemberIntegrationTest extends IntegrationTestSupport {
-
-//    @LocalServerPort
-//    private int port;
-//
-//    @Autowired
-//    private DatabaseCleanup databaseCleanup;
 
     @Autowired
     private MemberRepository memberRepository;
@@ -35,35 +36,23 @@ public class MemberIntegrationTest extends IntegrationTestSupport {
     private PasswordEncoder passwordEncoder;
 
     private String signUpAndLogin(String email, String password, String nickname) {
-        given().mockMvc(mockMvc)
-                .contentType(ContentType.JSON)
+        spec.contentType(ContentType.JSON)
                 .body(new SignUpRequestDto(email, password, password,nickname, null))
                 .post("/members");
 
-        return given().mockMvc(mockMvc)
+        return spec
                 .contentType(ContentType.JSON)
                 .body(new LoginRequestDto(email, password))
                 .post("/members/session")
                 .then().extract().jsonPath().getString("accessToken");
     }
 
-//    @BeforeEach
-//    public void setUp() {
-//        RestAssured.port = port;
-//    }
-//
-//    @AfterEach
-//    public void tearDown() {
-//        databaseCleanup.execute();
-//    }
-
     @Test
     @DisplayName("회원가입 후 로그인하면 토큰을 발급받고, 해당 토큰으로 내 정보를 조회할 수 있다")
     void 회원가입_후_로그인_시_내_정보_조회_성공() {
         String accessToken = signUpAndLogin("test@test.com", "Test111!", "테스터");
 
-        given().log().all()
-                .mockMvc(mockMvc)
+        spec
                 .header("Authorization", "Bearer " + accessToken)
                 .contentType(ContentType.JSON)
                 .when()
@@ -77,8 +66,7 @@ public class MemberIntegrationTest extends IntegrationTestSupport {
     @Test
     @DisplayName("토큰 없이 내 정보 API를 호출하면 401 에러가 발생한다")
     void 토큰_없이_내_정보_호출하면_401 () {
-        given().log().all()
-                .mockMvc(mockMvc)
+        spec
                 .contentType(ContentType.JSON)
                 .when()
                 .get("/members/me")
@@ -94,8 +82,7 @@ public class MemberIntegrationTest extends IntegrationTestSupport {
 
         memberService.signup(req1);
 
-        given().log().all()
-                .mockMvc(mockMvc)
+        spec
                 .contentType(ContentType.JSON)
                 .body(req2)
                 .when()
@@ -112,8 +99,7 @@ public class MemberIntegrationTest extends IntegrationTestSupport {
 
         memberService.signup(req1);
 
-        given().log().all()
-                .mockMvc(mockMvc)
+        spec
                 .contentType(ContentType.JSON)
                 .body(req2)
                 .when()
@@ -127,8 +113,7 @@ public class MemberIntegrationTest extends IntegrationTestSupport {
     void 회원가입_폼_이메일_유효성_검사_통과_실패() {
         SignUpRequestDto req = new SignUpRequestDto("wrong_email", "Test123!", "Test123!", "테스터1", null);
 
-        given().log().all()
-                .mockMvc(mockMvc)
+        spec
                 .contentType(ContentType.JSON)
                 .body(req)
                 .when()
@@ -143,8 +128,7 @@ public class MemberIntegrationTest extends IntegrationTestSupport {
     void 회원가입_폼_비밀번호_유효성_검사_통과_실패() {
         SignUpRequestDto req = new SignUpRequestDto("test@test.com", "t", "Test123!", "테스터1", null);
 
-        given().log().all()
-                .mockMvc(mockMvc)
+        spec
                 .contentType(ContentType.JSON)
                 .body(req)
                 .when()
@@ -159,8 +143,7 @@ public class MemberIntegrationTest extends IntegrationTestSupport {
     void 회원가입_폼_닉네임_띄어쓰기_있으면_실패() {
         SignUpRequestDto req = new SignUpRequestDto("test@test.com", "Test123!", "Test123!", "테 스터", null);
 
-        given().log().all()
-                .mockMvc(mockMvc)
+        spec
                 .contentType(ContentType.JSON)
                 .body(req)
                 .when()
@@ -175,8 +158,7 @@ public class MemberIntegrationTest extends IntegrationTestSupport {
     void 회원가입_폼_닉네임_열_글자_넘으면_실패() {
         SignUpRequestDto req = new SignUpRequestDto("test@test.com", "Test123!", "Test123!", "열글자가넘는테스트이름입니다", null);
 
-        given().log().all()
-                .mockMvc(mockMvc)
+        spec
                 .contentType(ContentType.JSON)
                 .body(req)
                 .when()
@@ -191,8 +173,7 @@ public class MemberIntegrationTest extends IntegrationTestSupport {
     void 비로그인_회원_정보_수정_요청_시_실패() {
         MemberInfoUpdateRequestDto updateReq = new MemberInfoUpdateRequestDto("닉네임", "이미지");
 
-        given().log().all()
-                .mockMvc(mockMvc)
+        spec
                 .contentType(ContentType.JSON)
                 .body(updateReq)
                 .when()
@@ -214,8 +195,7 @@ public class MemberIntegrationTest extends IntegrationTestSupport {
 
         MemberInfoUpdateRequestDto updateReq = new MemberInfoUpdateRequestDto("공격시도", "공격시도이미지");
 
-        given().log().all()
-                .mockMvc(mockMvc)
+        spec
                 .header("Authorization", "Bearer " + attackerToken)
                 .contentType(ContentType.JSON)
                 .body(updateReq)
@@ -233,8 +213,7 @@ public class MemberIntegrationTest extends IntegrationTestSupport {
         Long memberId = memberRepository.findByEmail("test@test.com").orElseThrow(() -> new RuntimeException("멤버 없음"))
                 .getMemberId();
 
-        given().log().all()
-                .mockMvc(mockMvc)
+        spec
                 .header("Authorization", "Bearer " + accessToken)
                 .contentType(ContentType.JSON)
                 .body(updateReq)
@@ -243,7 +222,7 @@ public class MemberIntegrationTest extends IntegrationTestSupport {
                 .then().log().all()
                 .statusCode(200);
 
-        given().mockMvc(mockMvc)
+        spec
                 .header("Authorization", "Bearer " + accessToken)
                 .when().get("/members/me")
                 .then()
@@ -259,8 +238,7 @@ public class MemberIntegrationTest extends IntegrationTestSupport {
         Long memberId = memberRepository.findByEmail("test@test.com").orElseThrow(() -> new RuntimeException("멤버 없음"))
                 .getMemberId();
 
-        given().log().all()
-                .mockMvc(mockMvc)
+        spec
                 .header("Authorization", "Bearer " + accessToken)
                 .contentType(ContentType.JSON)
                 .body(updateReq)
@@ -279,8 +257,7 @@ public class MemberIntegrationTest extends IntegrationTestSupport {
         Long memberId = memberRepository.findByEmail("test@test.com").orElseThrow(() -> new RuntimeException("멤버 없음"))
                 .getMemberId();
 
-        given().log().all()
-                .mockMvc(mockMvc)
+        spec
                 .header("Authorization", "Bearer " + accessToken)
                 .contentType(ContentType.JSON)
                 .body(updateReq)
@@ -297,8 +274,7 @@ public class MemberIntegrationTest extends IntegrationTestSupport {
     void 비로그인_비밀번호_변경_요청_시_실패() {
         PasswordUpdateRequestDto updateReq = new PasswordUpdateRequestDto("NewPw123!", "NewPw123!");
 
-        given().log().all()
-                .mockMvc(mockMvc)
+        spec
                 .contentType(ContentType.JSON)
                 .body(updateReq)
                 .when()
@@ -309,7 +285,7 @@ public class MemberIntegrationTest extends IntegrationTestSupport {
 
     @Test
     @DisplayName("다른 사용자의 비밀번호를 수정하려고 하면 403 에러가 발생한다")
-    void 타인_비밀번호_변경_실패() {
+    void 타인_비밀번호_변경_실패() throws Exception {
         String attackerToken = signUpAndLogin("test@test.com", "Test111!", "공격자");
         Member victim = Member.builder()
                 .email("victim@test.com")
@@ -320,36 +296,31 @@ public class MemberIntegrationTest extends IntegrationTestSupport {
 
         PasswordUpdateRequestDto updateReq = new PasswordUpdateRequestDto("Attack111!", "Attack111!");
 
-        given().log().all()
-                .mockMvc(mockMvc)
-                .header("Authorization", "Bearer " + attackerToken)
-                .cookie("refreshToken", "dummy")
-                .contentType(ContentType.JSON)
-                .body(updateReq)
-                .when()
-                .patch("/members/"+victim.getMemberId())
-                .then().log().all()
-                .statusCode(HttpStatus.FORBIDDEN.value());
+        mockMvc.perform(patch("/members/{id}", victim.getMemberId())
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + attackerToken)
+                        .cookie(new Cookie("refreshToken", "dummy"))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(updateReq)))
+                .andDo(print())
+                .andExpect(status().isForbidden());
+
     }
 
     @Test
     @DisplayName("로그인 후 비밀번호를 변경하면 DB에 반영된다")
-    void 비밀번호_변경_성공() {
+    void 비밀번호_변경_성공() throws Exception {
         String accessToken = signUpAndLogin("test@test.com", "Test111!", "테스터");
         PasswordUpdateRequestDto updateReq = new PasswordUpdateRequestDto("Test123!", "Test123!");
         Long memberId = memberRepository.findByEmail("test@test.com").orElseThrow(() -> new RuntimeException("멤버 없음"))
                 .getMemberId();
 
-        given().log().all()
-                .mockMvc(mockMvc)
-                .header("Authorization", "Bearer " + accessToken)
-                .cookie("refreshToken", "dummy")
-                .contentType(ContentType.JSON)
-                .body(updateReq)
-                .when()
-                .patch("/members/"+ memberId)
-                .then().log().all()
-                .statusCode(200);
+        mockMvc.perform(patch("/members/{id}", memberId)
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken)
+                        .cookie(new Cookie("refreshToken", "dummy"))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(updateReq)))
+                .andDo(print())
+                .andExpect(status().isOk());
 
         Member updatedMember = memberRepository.findById(memberId).orElseThrow(() -> new RuntimeException("멤버 없음"));
         boolean isMatched = passwordEncoder.matches("Test123!", updatedMember.getPassword());
@@ -359,51 +330,44 @@ public class MemberIntegrationTest extends IntegrationTestSupport {
 
     @Test
     @DisplayName("기존에 사용하던 비밀번호로 변경 요청 시 422 에러가 발생한다")
-    void 기존_비밀번호로_변경_시_400() {
+    void 기존_비밀번호로_변경_시_400() throws Exception {
         String accessToken = signUpAndLogin("test@test.com", "Test111!", "테스터");
         PasswordUpdateRequestDto updateReq = new PasswordUpdateRequestDto("Test111!", "Test111!");
         Long memberId = memberRepository.findByEmail("test@test.com").orElseThrow(() -> new RuntimeException("멤버 없음"))
                 .getMemberId();
 
-        given().log().all()
-                .mockMvc(mockMvc)
-                .header("Authorization", "Bearer " + accessToken)
-                .cookie("refreshToken", "dummy")
-                .contentType(ContentType.JSON)
-                .body(updateReq)
-                .when()
-                .patch("/members/"+memberId)
-                .then().log().all()
-                .statusCode(422)
-                .body("message", equalTo("이미 사용 중인 비밀번호입니다."));
+        mockMvc.perform(patch("/members/{id}", memberId)
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken)
+                        .cookie(new Cookie("refreshToken", "dummy"))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(updateReq)))
+                .andDo(print())
+                .andExpect(status().isUnprocessableEntity())
+                .andExpect(jsonPath("$.message").value("이미 사용 중인 비밀번호입니다."));
     }
 
     @Test
     @DisplayName("유효하지 않은 비밀번호(틀린 형식)로 변경 요청 시 400 에러가 발생한다")
-    void 형식이_틀린_비밀번호로_변경_시_400() {
+    void 형식이_틀린_비밀번호로_변경_시_400() throws Exception {
         String accessToken = signUpAndLogin("test@test.com", "Test111!", "테스터");
         PasswordUpdateRequestDto updateReq = new PasswordUpdateRequestDto("test", "test");
         Long memberId = memberRepository.findByEmail("test@test.com").orElseThrow(() -> new RuntimeException("멤버 없음"))
                 .getMemberId();
 
-        given().log().all()
-                .mockMvc(mockMvc)
-                .header("Authorization", "Bearer " + accessToken)
-                .cookie("refreshToken", "dummy")
-                .contentType(ContentType.JSON)
-                .body(updateReq)
-                .when()
-                .patch("/members/"+memberId)
-                .then().log().all()
-                .statusCode(400)
-                .body("password", equalTo("비밀번호는 8자 이상 20자 이하이며, 대문자, 소문자, 숫자, 특수문자를 각각 최소 1개 포함해야 합니다."));
+        mockMvc.perform(patch("/members/{id}", memberId)
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken)
+                        .cookie(new Cookie("refreshToken", "dummy"))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(updateReq)))
+                .andDo(print())
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.password").value("비밀번호는 8자 이상 20자 이하이며, 대문자, 소문자, 숫자, 특수문자를 각각 최소 1개 포함해야 합니다."));
     }
 
     @Test
     @DisplayName("로그인하지 않은 사용자가 회원 탈퇴를 요청하면 401 에러가 발생한다")
     void 비로그인_회원_탈퇴_요청_시_실패() {
-        given().log().all()
-                .mockMvc(mockMvc)
+        spec
                 .when()
                 .delete("/members/{id}", 1L)
                 .then().log().all()
@@ -412,7 +376,7 @@ public class MemberIntegrationTest extends IntegrationTestSupport {
 
     @Test
     @DisplayName("다른 사용자의 계정을 탈퇴하려고 하면 403 에러가 발생한다")
-    void 타인_계정_탈퇴_실패() {
+    void 타인_계정_탈퇴_실패() throws Exception {
         String attackerToken = signUpAndLogin("test@test.com", "Test111!", "공격자");
         Member victim = Member.builder()
                 .email("victim@test.com")
@@ -421,32 +385,28 @@ public class MemberIntegrationTest extends IntegrationTestSupport {
                 .isDeleted(false).build();
         memberRepository.save(victim);
 
-        given().log().all()
-                .mockMvc(mockMvc)
-                .header("Authorization", "Bearer " + attackerToken)
-                .cookie("refreshToken", "dummy")
-                .when()
-                .delete("/members/"+victim.getMemberId())
-                .then().log().all()
-                .statusCode(403);
+        mockMvc.perform(delete("/members/{id}", victim.getMemberId())
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + attackerToken)
+                        .cookie(new Cookie("refreshToken", "dummy")))
+                .andDo(print())
+                .andExpect(status().isForbidden());
     }
 
     @Test
     @DisplayName("회원 탈퇴 시 해당 계정으로 다시 로그인할 수 없다")
-    void 회원_탈퇴_후_해당_계정으로_로그인_불가() {
+    void 회원_탈퇴_후_해당_계정으로_로그인_불가() throws Exception {
         String accessToken = signUpAndLogin("test@test.com", "Test111!", "테스터");
         Long memberId = memberRepository.findByEmail("test@test.com").orElseThrow(() -> new RuntimeException("멤버 없음"))
                 .getMemberId();
 
-        given().mockMvc(mockMvc)
-                .header("Authorization", "Bearer " + accessToken)
-                .cookie("refreshToken", "dummy")
-                .when()
-                .delete("/members/"+memberId)
-                .then().statusCode(204);
+        mockMvc.perform(delete("/members/{id}", memberId)
+                        .header("Authorization", "Bearer " + accessToken)
+                        .cookie(new Cookie("refreshToken", "dummy_token")))
+                .andDo(print())
+                .andExpect(status().isNoContent());
 
         LoginRequestDto loginReq = new LoginRequestDto("test@test.com", "Test111!");
-        given().mockMvc(mockMvc)
+        spec
                 .contentType(ContentType.JSON)
                 .body(loginReq)
                 .when()

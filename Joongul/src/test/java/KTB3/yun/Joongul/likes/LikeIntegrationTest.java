@@ -20,17 +20,11 @@ import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
 
-import static io.restassured.module.mockmvc.RestAssuredMockMvc.given;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.jupiter.api.Assertions.*;
 
 public class LikeIntegrationTest extends IntegrationTestSupport {
 
-//    @LocalServerPort
-//    private int port;
-//
-//    @Autowired
-//    private DatabaseCleanup databaseCleanup;
     @Autowired
     private MemberRepository memberRepository;
     @Autowired
@@ -42,24 +36,13 @@ public class LikeIntegrationTest extends IntegrationTestSupport {
     @Autowired
     private JwtTokenProvider jwtTokenProvider;
 
-//    @BeforeEach
-//    public void setUp() {
-//        RestAssured.port = port;
-//    }
-//
-//    @AfterEach
-//    public void tearDown() {
-//        databaseCleanup.execute();
-//    }
-
     @Test
     @DisplayName("로그인하지 않은 사용자는 게시글 좋아요 시 401 오류가 발생한다")
     void 비로그인_사용자_게시글_좋아요_시_401() {
         Member member = saveMember("test@test.com", "Test111!", "테스터");
         Post post1 = savePost("제목1", "내용1", member);
 
-        given().log().all()
-                .mockMvc(mockMvc)
+        spec
                 .when()
                 .post("/posts/{id}/likes", post1.getPostId())
                 .then().log().all()
@@ -73,8 +56,7 @@ public class LikeIntegrationTest extends IntegrationTestSupport {
         String accessToken = getAccessToken(member);
         Post post1 = savePost("제목1", "내용1", member);
 
-        given().log().all()
-                .mockMvc(mockMvc)
+        spec
                 .header("Authorization", "Bearer " + accessToken)
                 .when()
                 .post("/posts/{id}/likes", post1.getPostId())
@@ -84,8 +66,7 @@ public class LikeIntegrationTest extends IntegrationTestSupport {
         Post likedPost = postRepository.findById(post1.getPostId()).orElseThrow();
         assertEquals(1, likedPost.getLikes());
 
-        boolean isLikeExist = given().log().all()
-                .mockMvc(mockMvc)
+        boolean isLikeExist = spec
                 .header("Authorization", "Bearer " + accessToken)
                 .when()
                 .get("/posts/{id}/likes", post1.getPostId())
@@ -101,8 +82,7 @@ public class LikeIntegrationTest extends IntegrationTestSupport {
         Member member = saveMember("test@test.com", "Test111!", "테스터");
         String accessToken = getAccessToken(member);
 
-        given().log().all()
-                .mockMvc(mockMvc)
+        spec
                 .header("Authorization", "Bearer " + accessToken)
                 .when()
                 .post("/posts/{id}/likes", 1L)
@@ -118,8 +98,7 @@ public class LikeIntegrationTest extends IntegrationTestSupport {
         Post post1 = savePost("제목1", "내용1", member);
         saveLike(post1, member);
 
-        given().log().all()
-                .mockMvc(mockMvc)
+        spec
                 .header("Authorization", "Bearer " + accessToken)
                 .when()
                 .post("/posts/{id}/likes", post1.getPostId())
@@ -134,8 +113,7 @@ public class LikeIntegrationTest extends IntegrationTestSupport {
         Post post1 = savePost("제목1", "내용1", member);
         saveLike(post1, member);
 
-        given().log().all()
-                .mockMvc(mockMvc)
+        spec
                 .when()
                 .delete("/posts/{id}/likes", post1.getPostId())
                 .then().log().all()
@@ -150,8 +128,7 @@ public class LikeIntegrationTest extends IntegrationTestSupport {
         Post post1 = savePost("제목1", "내용1", member);
         saveLike(post1, member);
 
-        given().log().all()
-                .mockMvc(mockMvc)
+        spec
                 .header("Authorization", "Bearer " + accessToken)
                 .when()
                 .delete("/posts/{id}/likes", post1.getPostId())
@@ -161,8 +138,7 @@ public class LikeIntegrationTest extends IntegrationTestSupport {
         Post unlikedPost = postRepository.findById(post1.getPostId()).orElseThrow();
         assertEquals(0, unlikedPost.getLikes());
 
-        boolean isLiked = given().log().all()
-                .mockMvc(mockMvc)
+        boolean isLiked = spec
                 .header("Authorization", "Bearer " + accessToken)
                 .when()
                 .get("/posts/{id}/likes", post1.getPostId())
@@ -178,8 +154,7 @@ public class LikeIntegrationTest extends IntegrationTestSupport {
         Member member = saveMember("test@test.com", "Test111!", "테스터");
         String accessToken = getAccessToken(member);
 
-        given().log().all()
-                .mockMvc(mockMvc)
+        spec
                 .header("Authorization", "Bearer " + accessToken)
                 .when()
                 .delete("/posts/{id}/likes", 1L)
@@ -194,7 +169,7 @@ public class LikeIntegrationTest extends IntegrationTestSupport {
         String accessToken = getAccessToken(member);
         Post post1 = savePost("제목1", "내용1", member);
 
-        given().log().all().mockMvc(mockMvc)
+        spec
                 .header("Authorization", "Bearer " + accessToken)
                 .when()
                 .delete("/posts/{id}/likes", post1.getPostId())

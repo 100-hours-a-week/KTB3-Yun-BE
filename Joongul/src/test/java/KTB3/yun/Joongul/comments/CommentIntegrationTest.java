@@ -25,18 +25,12 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
-import static io.restassured.module.mockmvc.RestAssuredMockMvc.given;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class CommentIntegrationTest extends IntegrationTestSupport {
 
-//    @LocalServerPort
-//    private int port;
-//
-//    @Autowired
-//    private DatabaseCleanup databaseCleanup;
     @Autowired
     private JwtTokenProvider jwtTokenProvider;
     @Autowired
@@ -48,15 +42,6 @@ public class CommentIntegrationTest extends IntegrationTestSupport {
     @Autowired
     private CommentRepository commentRepository;
 
-//    @BeforeEach
-//    public void setUp() {
-//        RestAssured.port = port;
-//    }
-//
-//    @AfterEach
-//    public void tearDown() {
-//        databaseCleanup.execute();
-//    }
 
     @Test
     @DisplayName("로그인하지 않은 사용자는 댓글 작성 시 401 오류가 발생한다")
@@ -66,7 +51,7 @@ public class CommentIntegrationTest extends IntegrationTestSupport {
 
         CommentWriteRequestDto commentReq = new CommentWriteRequestDto("댓글");
 
-        given().log().all().mockMvc(mockMvc)
+        spec
                 .contentType(ContentType.JSON)
                 .body(commentReq)
                 .when()
@@ -84,7 +69,7 @@ public class CommentIntegrationTest extends IntegrationTestSupport {
 
         CommentWriteRequestDto commentReq = new CommentWriteRequestDto("댓글");
 
-        given().log().all().mockMvc(mockMvc)
+        spec
                 .contentType(ContentType.JSON)
                 .header("Authorization", "Bearer " + accessToken)
                 .body(commentReq)
@@ -104,7 +89,7 @@ public class CommentIntegrationTest extends IntegrationTestSupport {
 
         CommentWriteRequestDto commentReq = new CommentWriteRequestDto("댓글");
 
-        given().log().all().mockMvc(mockMvc)
+        spec
                 .contentType(ContentType.JSON)
                 .header("Authorization", "Bearer " + accessToken)
                 .body(commentReq)
@@ -123,7 +108,7 @@ public class CommentIntegrationTest extends IntegrationTestSupport {
 
         CommentWriteRequestDto commentReq = new CommentWriteRequestDto("");
 
-        given().log().all().mockMvc(mockMvc)
+        spec
                 .contentType(ContentType.JSON)
                 .header("Authorization", "Bearer " + accessToken)
                 .body(commentReq)
@@ -142,7 +127,7 @@ public class CommentIntegrationTest extends IntegrationTestSupport {
 
         CommentUpdateRequestDto updateReq = new CommentUpdateRequestDto("수정");
 
-        given().log().all().mockMvc(mockMvc)
+        spec
                 .contentType(ContentType.JSON)
                 .body(updateReq)
                 .when()
@@ -161,7 +146,7 @@ public class CommentIntegrationTest extends IntegrationTestSupport {
 
         CommentUpdateRequestDto updateReq = new CommentUpdateRequestDto("수정");
 
-        given().log().all().mockMvc(mockMvc)
+        spec
                 .contentType(ContentType.JSON)
                 .header("Authorization", "Bearer " + accessToken)
                 .body(updateReq)
@@ -189,7 +174,7 @@ public class CommentIntegrationTest extends IntegrationTestSupport {
 
         CommentUpdateRequestDto updateReq = new CommentUpdateRequestDto("수정");
 
-        given().log().all().mockMvc(mockMvc)
+        spec
                 .contentType(ContentType.JSON)
                 .header("Authorization", "Bearer " + accessToken)
                 .body(updateReq)
@@ -208,7 +193,7 @@ public class CommentIntegrationTest extends IntegrationTestSupport {
 
         CommentUpdateRequestDto updateReq = new CommentUpdateRequestDto("수정");
 
-        given().log().all().mockMvc(mockMvc)
+        spec
                 .contentType(ContentType.JSON)
                 .header("Authorization", "Bearer " + accessToken)
                 .body(updateReq)
@@ -228,7 +213,7 @@ public class CommentIntegrationTest extends IntegrationTestSupport {
 
         CommentUpdateRequestDto updateReq = new CommentUpdateRequestDto("");
 
-        given().log().all().mockMvc(mockMvc)
+        spec
                 .contentType(ContentType.JSON)
                 .header("Authorization", "Bearer " + accessToken)
                 .body(updateReq)
@@ -245,7 +230,7 @@ public class CommentIntegrationTest extends IntegrationTestSupport {
         Post post1 = savePost("제목1", "내용1", member);
         Comment comment = saveComment(post1, member, "내용");
 
-        given().log().all().mockMvc(mockMvc)
+        spec
                 .when()
                 .delete("/posts/{postId}/comments/{commentId}", post1.getPostId(), comment.getCommentId())
                 .then().log().all()
@@ -260,7 +245,7 @@ public class CommentIntegrationTest extends IntegrationTestSupport {
         Post post1 = savePost("제목1", "내용1", member);
         Comment comment = saveComment(post1, member, "내용");
 
-        given().log().all().mockMvc(mockMvc)
+        spec
                 .header("Authorization", "Bearer " + accessToken)
                 .when()
                 .delete("/posts/{postId}/comments/{commentId}", post1.getPostId(), comment.getCommentId())
@@ -280,7 +265,7 @@ public class CommentIntegrationTest extends IntegrationTestSupport {
         Post post1 = savePost("제목1", "내용1", member);
         Comment comment = saveComment(post1, member, "내용");
 
-        given().log().all().mockMvc(mockMvc)
+        spec
                 .header("Authorization", "Bearer " + accessToken)
                 .when()
                 .delete("/posts/{postId}/comments/{commentId}", post1.getPostId(), comment.getCommentId())
@@ -295,7 +280,7 @@ public class CommentIntegrationTest extends IntegrationTestSupport {
         String accessToken = getAccessToken(member);
         Post post1 = savePost("제목1", "내용1", member);
 
-        given().log().all().mockMvc(mockMvc)
+        spec
                 .header("Authorization", "Bearer " + accessToken)
                 .when()
                 .delete("/posts/{postId}/comments/{commentId}", post1.getPostId(), 1L)

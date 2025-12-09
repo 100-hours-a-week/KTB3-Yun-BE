@@ -23,18 +23,12 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
-import static io.restassured.module.mockmvc.RestAssuredMockMvc.given;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class PostIntegrationTest extends IntegrationTestSupport {
 
-//    @LocalServerPort
-//    private int port;
-//
-//    @Autowired
-//    private DatabaseCleanup databaseCleanup;
     @Autowired
     private PostRepository postRepository;
     @Autowired
@@ -44,20 +38,10 @@ public class PostIntegrationTest extends IntegrationTestSupport {
     @Autowired
     private MemberRepository memberRepository;
 
-//    @BeforeEach
-//    public void setUp() {
-//        RestAssured.port = port;
-//    }
-//
-//    @AfterEach
-//    public void tearDown() {
-//        databaseCleanup.execute();
-//    }
-
     @Test
     @DisplayName("로그인하지 않은 사용자는 게시글 목록 조회 시 401 오류가 발생한다")
     void 비로그인_사용자_게시글_목록_조회_시_401 () {
-        given().log().all().mockMvc(mockMvc)
+        spec
                 .when()
                 .get("/posts")
                 .then().log().all()
@@ -73,7 +57,7 @@ public class PostIntegrationTest extends IntegrationTestSupport {
         Post post1 = savePost("제목1", "내용1", member);
         Post post2 = savePost("제목2", "내용2", member);
 
-        given().log().all().mockMvc(mockMvc)
+        spec
                 .header("Authorization", "Bearer " + accessToken)
                 .when()
                 .get("/posts")
@@ -92,7 +76,7 @@ public class PostIntegrationTest extends IntegrationTestSupport {
         Member member = saveMember("test@test.com", "Test111!", "테스터");
         Post post1 = savePost("제목1", "내용1", member);
 
-        given().log().all().mockMvc(mockMvc)
+        spec
                 .when()
                 .get("/posts/{id}", post1.getPostId())
                 .then().log().all()
@@ -106,7 +90,7 @@ public class PostIntegrationTest extends IntegrationTestSupport {
         String accessToken = getAccessToken(member);
         Post post1 = savePost("제목1", "내용1", member);
 
-        given().log().all().mockMvc(mockMvc)
+        spec
                 .header("Authorization", "Bearer " + accessToken)
                 .when()
                 .get("/posts/{id}", post1.getPostId())
@@ -124,7 +108,7 @@ public class PostIntegrationTest extends IntegrationTestSupport {
         Member member = saveMember("test@test.com", "Test111!", "테스터");
         String accessToken = getAccessToken(member);
 
-        given().log().all().mockMvc(mockMvc)
+        spec
                 .header("Authorization", "Bearer " + accessToken)
                 .when()
                 .get("/posts/{id}", 1L)
@@ -150,7 +134,7 @@ public class PostIntegrationTest extends IntegrationTestSupport {
 
         postRepository.save(deletedPost);
 
-        given().log().all().mockMvc(mockMvc)
+        spec
                 .header("Authorization", "Bearer " + accessToken)
                 .when()
                 .get("/posts/{id}", deletedPost.getPostId())
@@ -163,7 +147,7 @@ public class PostIntegrationTest extends IntegrationTestSupport {
     void 비로그인_사용자_게시글_작성_시_401() {
         PostWriteRequestDto postReq = new PostWriteRequestDto("제목", "내용", null);
 
-        given().log().all().mockMvc(mockMvc)
+        spec
                 .contentType(ContentType.JSON)
                 .body(postReq)
                 .when()
@@ -180,7 +164,7 @@ public class PostIntegrationTest extends IntegrationTestSupport {
         PostWriteRequestDto postReq = new PostWriteRequestDto("제목", "내용", null);
 
 
-        Long postId = given().log().all().mockMvc(mockMvc)
+        Long postId = spec
                 .contentType(ContentType.JSON)
                 .header("Authorization", "Bearer " + accessToken)
                 .body(postReq)
@@ -207,7 +191,7 @@ public class PostIntegrationTest extends IntegrationTestSupport {
         String accessToken = getAccessToken(member);
         PostWriteRequestDto postReq = new PostWriteRequestDto("제목", "", null);
 
-        given().log().all().mockMvc(mockMvc)
+        spec
                 .contentType(ContentType.JSON)
                 .header("Authorization", "Bearer " + accessToken)
                 .body(postReq)
@@ -224,7 +208,7 @@ public class PostIntegrationTest extends IntegrationTestSupport {
         Post post1 = savePost("제목1", "내용1", member);
         PostUpdateRequestDto updateReq = new PostUpdateRequestDto("제목1", "수정", null);
 
-        given().log().all().mockMvc(mockMvc)
+        spec
                 .contentType(ContentType.JSON)
                 .body(updateReq)
                 .when()
@@ -241,7 +225,7 @@ public class PostIntegrationTest extends IntegrationTestSupport {
         Post post1 = savePost("제목1", "내용1", member);
         PostUpdateRequestDto updateReq = new PostUpdateRequestDto("제목 수정", "내용 수정", "이미지 수정");
 
-        given().log().all().mockMvc(mockMvc)
+        spec
                 .contentType(ContentType.JSON)
                 .header("Authorization", "Bearer " + accessToken)
                 .body(updateReq)
@@ -271,7 +255,7 @@ public class PostIntegrationTest extends IntegrationTestSupport {
         Member anotherMember = saveMember("another@test.com", "Test111!", "다른테스터");
         String accessToken = getAccessToken(anotherMember);
 
-        given().log().all().mockMvc(mockMvc)
+        spec
                 .contentType(ContentType.JSON)
                 .header("Authorization", "Bearer " + accessToken)
                 .body(updateReq)
@@ -288,7 +272,7 @@ public class PostIntegrationTest extends IntegrationTestSupport {
         String accessToken = getAccessToken(member);
         PostUpdateRequestDto updateReq = new PostUpdateRequestDto("제목 수정", "내용 수정", "이미지 수정");
 
-        given().log().all().mockMvc(mockMvc)
+        spec
                 .contentType(ContentType.JSON)
                 .header("Authorization", "Bearer " + accessToken)
                 .body(updateReq)
@@ -318,7 +302,7 @@ public class PostIntegrationTest extends IntegrationTestSupport {
 
         PostUpdateRequestDto updateReq = new PostUpdateRequestDto("제목 수정", "내용 수정", "이미지 수정");
 
-        given().log().all().mockMvc(mockMvc)
+        spec
                 .contentType(ContentType.JSON)
                 .header("Authorization", "Bearer " + accessToken)
                 .body(updateReq)
@@ -336,7 +320,7 @@ public class PostIntegrationTest extends IntegrationTestSupport {
         String accessToken = getAccessToken(member);
         PostUpdateRequestDto updateReq = new PostUpdateRequestDto("제목 수정", "", "이미지 수정");
 
-        given().log().all().mockMvc(mockMvc)
+        spec
                 .contentType(ContentType.JSON)
                 .header("Authorization", "Bearer " + accessToken)
                 .body(updateReq)
@@ -352,7 +336,7 @@ public class PostIntegrationTest extends IntegrationTestSupport {
         Member member = saveMember("test@test.com", "Test111!", "테스터");
         Post post1 = savePost("제목1", "내용1", member);
 
-        given().log().all().mockMvc(mockMvc)
+        spec
                 .when()
                 .delete("/posts/{id}", post1.getPostId())
                 .then().log().all()
@@ -366,7 +350,7 @@ public class PostIntegrationTest extends IntegrationTestSupport {
         Post post1 = savePost("제목1", "내용1", member);
         String accessToken = getAccessToken(member);
 
-        given().log().all().mockMvc(mockMvc)
+        spec
                 .header("Authorization", "Bearer " + accessToken)
                 .when()
                 .delete("/posts/{id}", post1.getPostId())
@@ -386,7 +370,7 @@ public class PostIntegrationTest extends IntegrationTestSupport {
         Member anotherMember = saveMember("another@test.com", "Test111!", "다른테스터");
         String accessToken = getAccessToken(anotherMember);
 
-        given().log().all().mockMvc(mockMvc)
+        spec
                 .header("Authorization", "Bearer " + accessToken)
                 .when()
                 .delete("/posts/{id}", post1.getPostId())
@@ -400,7 +384,7 @@ public class PostIntegrationTest extends IntegrationTestSupport {
         Member member = saveMember("test@test.com", "Test111!", "테스터");
         String accessToken = getAccessToken(member);
 
-        given().log().all().mockMvc(mockMvc)
+        spec
                 .header("Authorization", "Bearer " + accessToken)
                 .when()
                 .delete("/posts/{id}", 1L)
