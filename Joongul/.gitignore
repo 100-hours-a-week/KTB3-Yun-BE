@@ -7,7 +7,6 @@ build/
 settings.gradle
 application.properties
 application.yml
-junit-platform.properties
 
 ### STS ###
 .apt_generated
