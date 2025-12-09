@@ -346,7 +346,7 @@ public class MemberIntegrationTest {
 
     @Test
     @DisplayName("기존에 사용하던 비밀번호로 변경 요청 시 422 에러가 발생한다")
-    void 기존_비밀번호로_변경_시_400() {
+    void 기존_비밀번호로_변경_시_422() {
         String accessToken = signUpAndLogin("test@test.com", "Test111!", "테스터");
         PasswordUpdateRequestDto updateReq = new PasswordUpdateRequestDto("Test111!", "Test111!");
         Long memberId = memberRepository.findByEmail("test@test.com").orElseThrow(() -> new RuntimeException("멤버 없음"))
