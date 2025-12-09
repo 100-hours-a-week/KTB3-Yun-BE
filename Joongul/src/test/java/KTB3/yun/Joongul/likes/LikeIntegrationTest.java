@@ -2,21 +2,16 @@ package KTB3.yun.Joongul.likes;
 
 import KTB3.yun.Joongul.common.auth.JwtTokenProvider;
 import KTB3.yun.Joongul.common.dto.JwtToken;
-import KTB3.yun.Joongul.global.utils.DatabaseCleanup;
+import KTB3.yun.Joongul.global.support.IntegrationTestSupport;
 import KTB3.yun.Joongul.likes.domain.Like;
 import KTB3.yun.Joongul.likes.repository.LikeRepository;
 import KTB3.yun.Joongul.members.domain.Member;
 import KTB3.yun.Joongul.members.repository.MemberRepository;
 import KTB3.yun.Joongul.posts.domain.Post;
 import KTB3.yun.Joongul.posts.repository.PostRepository;
-import io.restassured.RestAssured;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -25,18 +20,17 @@ import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
 
-import static io.restassured.RestAssured.given;
+import static io.restassured.module.mockmvc.RestAssuredMockMvc.given;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.jupiter.api.Assertions.*;
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-public class LikeIntegrationTest {
+public class LikeIntegrationTest extends IntegrationTestSupport {
 
-    @LocalServerPort
-    private int port;
-
-    @Autowired
-    private DatabaseCleanup databaseCleanup;
+//    @LocalServerPort
+//    private int port;
+//
+//    @Autowired
+//    private DatabaseCleanup databaseCleanup;
     @Autowired
     private MemberRepository memberRepository;
     @Autowired
@@ -48,15 +42,15 @@ public class LikeIntegrationTest {
     @Autowired
     private JwtTokenProvider jwtTokenProvider;
 
-    @BeforeEach
-    public void setUp() {
-        RestAssured.port = port;
-    }
-
-    @AfterEach
-    public void tearDown() {
-        databaseCleanup.execute();
-    }
+//    @BeforeEach
+//    public void setUp() {
+//        RestAssured.port = port;
+//    }
+//
+//    @AfterEach
+//    public void tearDown() {
+//        databaseCleanup.execute();
+//    }
 
     @Test
     @DisplayName("로그인하지 않은 사용자는 게시글 좋아요 시 401 오류가 발생한다")
@@ -65,6 +59,7 @@ public class LikeIntegrationTest {
         Post post1 = savePost("제목1", "내용1", member);
 
         given().log().all()
+                .mockMvc(mockMvc)
                 .when()
                 .post("/posts/{id}/likes", post1.getPostId())
                 .then().log().all()
@@ -79,6 +74,7 @@ public class LikeIntegrationTest {
         Post post1 = savePost("제목1", "내용1", member);
 
         given().log().all()
+                .mockMvc(mockMvc)
                 .header("Authorization", "Bearer " + accessToken)
                 .when()
                 .post("/posts/{id}/likes", post1.getPostId())
@@ -89,6 +85,7 @@ public class LikeIntegrationTest {
         assertEquals(1, likedPost.getLikes());
 
         boolean isLikeExist = given().log().all()
+                .mockMvc(mockMvc)
                 .header("Authorization", "Bearer " + accessToken)
                 .when()
                 .get("/posts/{id}/likes", post1.getPostId())
@@ -105,6 +102,7 @@ public class LikeIntegrationTest {
         String accessToken = getAccessToken(member);
 
         given().log().all()
+                .mockMvc(mockMvc)
                 .header("Authorization", "Bearer " + accessToken)
                 .when()
                 .post("/posts/{id}/likes", 1L)
@@ -121,6 +119,7 @@ public class LikeIntegrationTest {
         saveLike(post1, member);
 
         given().log().all()
+                .mockMvc(mockMvc)
                 .header("Authorization", "Bearer " + accessToken)
                 .when()
                 .post("/posts/{id}/likes", post1.getPostId())
@@ -136,6 +135,7 @@ public class LikeIntegrationTest {
         saveLike(post1, member);
 
         given().log().all()
+                .mockMvc(mockMvc)
                 .when()
                 .delete("/posts/{id}/likes", post1.getPostId())
                 .then().log().all()
@@ -151,6 +151,7 @@ public class LikeIntegrationTest {
         saveLike(post1, member);
 
         given().log().all()
+                .mockMvc(mockMvc)
                 .header("Authorization", "Bearer " + accessToken)
                 .when()
                 .delete("/posts/{id}/likes", post1.getPostId())
@@ -161,6 +162,7 @@ public class LikeIntegrationTest {
         assertEquals(0, unlikedPost.getLikes());
 
         boolean isLiked = given().log().all()
+                .mockMvc(mockMvc)
                 .header("Authorization", "Bearer " + accessToken)
                 .when()
                 .get("/posts/{id}/likes", post1.getPostId())
@@ -177,6 +179,7 @@ public class LikeIntegrationTest {
         String accessToken = getAccessToken(member);
 
         given().log().all()
+                .mockMvc(mockMvc)
                 .header("Authorization", "Bearer " + accessToken)
                 .when()
                 .delete("/posts/{id}/likes", 1L)
@@ -191,7 +194,7 @@ public class LikeIntegrationTest {
         String accessToken = getAccessToken(member);
         Post post1 = savePost("제목1", "내용1", member);
 
-        given().log().all()
+        given().log().all().mockMvc(mockMvc)
                 .header("Authorization", "Bearer " + accessToken)
                 .when()
                 .delete("/posts/{id}/likes", post1.getPostId())

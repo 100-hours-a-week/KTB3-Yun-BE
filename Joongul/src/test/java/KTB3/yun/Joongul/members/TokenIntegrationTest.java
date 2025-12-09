@@ -2,37 +2,31 @@ package KTB3.yun.Joongul.members;
 
 import KTB3.yun.Joongul.common.auth.JwtTokenProvider;
 import KTB3.yun.Joongul.common.dto.JwtToken;
-import KTB3.yun.Joongul.global.utils.DatabaseCleanup;
+import KTB3.yun.Joongul.global.support.IntegrationTestSupport;
 import KTB3.yun.Joongul.members.domain.Member;
 import KTB3.yun.Joongul.members.domain.RefreshToken;
 import KTB3.yun.Joongul.members.repository.MemberRepository;
 import KTB3.yun.Joongul.members.repository.RefreshTokenRepository;
-import io.restassured.RestAssured;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.List;
 
-import static io.restassured.RestAssured.given;
+import static io.restassured.module.mockmvc.RestAssuredMockMvc.given;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-public class TokenIntegrationTest {
+public class TokenIntegrationTest extends IntegrationTestSupport {
 
-    @LocalServerPort
-    private int port;
-
-    @Autowired
-    private DatabaseCleanup databaseCleanup;
+//    @LocalServerPort
+//    private int port;
+//
+//    @Autowired
+//    private DatabaseCleanup databaseCleanup;
     @Autowired
     private MemberRepository memberRepository;
     @Autowired
@@ -42,15 +36,15 @@ public class TokenIntegrationTest {
     @Autowired
     private JwtTokenProvider jwtTokenProvider;
 
-    @BeforeEach
-    public void setUp() {
-        RestAssured.port = port;
-    }
-
-    @AfterEach
-    public void tearDown() {
-        databaseCleanup.execute();
-    }
+//    @BeforeEach
+//    public void setUp() {
+//        RestAssured.port = port;
+//    }
+//
+//    @AfterEach
+//    public void tearDown() {
+//        databaseCleanup.execute();
+//    }
 
     @Test
     @DisplayName("유효한 RT로 요청 시 새로운 AT와 RT 재발급에 성공한다")
@@ -61,6 +55,7 @@ public class TokenIntegrationTest {
         Long oldTokenId = oldRefreshToken.getTokenId();
 
         given().log().all()
+                .mockMvc(mockMvc)
                 .cookie("refreshToken", validRefreshToken)
                 .when()
                 .post("/token")
@@ -77,6 +72,7 @@ public class TokenIntegrationTest {
     @DisplayName("RT 쿠키가 없으면 재발급 요청 시 TOKEN_NOT_FOUND(404) 오류가 발생한다")
     void RT_쿠키_없으면_TOKEN_NOT_FOUND() {
         given().log().all()
+                .mockMvc(mockMvc)
                 .when()
                 .post("/token")
                 .then().log().all()
@@ -88,6 +84,7 @@ public class TokenIntegrationTest {
     @DisplayName("유효하지 않은 형식의 RT로 재발급 요청 시 INVALID_TOKEN(401) 오류가 발생한다")
     void 유효하지_않은_형식의_RT는_INVALID_TOKEN() {
         given().log().all()
+                .mockMvc(mockMvc)
                 .cookie("refreshToken", "not.valid.token")
                 .when()
                 .post("/token")
@@ -104,6 +101,7 @@ public class TokenIntegrationTest {
                 member.getRoles().stream().map(SimpleGrantedAuthority::new).toList());
 
         given().log().all()
+                .mockMvc(mockMvc)
                 .cookie("refreshToken", jwtToken.getRefreshToken())
                 .when()
                 .post("/token")
@@ -129,6 +127,7 @@ public class TokenIntegrationTest {
         refreshTokenRepository.save(expiredRefreshToken);
 
         given().log().all()
+                .mockMvc(mockMvc)
                 .cookie("refreshToken", expiredRefreshToken.getRefreshToken())
                 .when()
                 .post("/token")
